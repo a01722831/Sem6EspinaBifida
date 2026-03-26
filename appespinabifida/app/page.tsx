@@ -1,9 +1,5 @@
+import Login from "./componentes/login";
+
 export default function Home() {
-  return (
-    <main>
-      <div>
-        Croissant
-      </div>
-    </main>
-  );
+  return <Login />;
 }
