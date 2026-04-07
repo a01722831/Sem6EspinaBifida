@@ -1,8 +1,16 @@
+import Filtros from "./components/Filtros";
+import Tabla from "./components/Tabla";
+
 export default function Home() {
   return (
-    <main>
-      <div>
-        Croissant
+    <main className="flex-1 p-6 pt-50 flex flex-col gap-4">
+      <div className="flex items-center justify-end gap-1">
+        
+      </div>
+
+      <div className="flex gap-6 items-stretch">
+        <Filtros />
+        <Tabla />
       </div>
     </main>
   );
