@@ -1,5 +1,5 @@
 import Filtros from "./components/Filtros";
-import Tabla from "./components/Tabla";
+import ListaAsociados from "./components/ListaAsociados";
 
 export default function Home() {
   return (
@@ -10,7 +10,7 @@ export default function Home() {
 
       <div className="flex gap-6 items-stretch">
         <Filtros />
-        <Tabla />
+        <ListaAsociados />
       </div>
     </main>
   );
