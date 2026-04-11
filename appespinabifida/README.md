@@ -20,6 +20,41 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Google Authentication Setup
+
+This app is configured with NextAuth and Google OAuth.
+
+1. Copy the environment template:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Create Google OAuth credentials in Google Cloud Console:
+- Create an OAuth Client ID (Web application).
+- Add this authorized redirect URI:
+
+```text
+http://localhost:3000/api/auth/callback/google
+```
+
+3. Fill in your credentials in `.env.local`:
+
+```env
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+NEXTAUTH_SECRET=...
+NEXTAUTH_URL=http://localhost:3000
+```
+
+You can generate `NEXTAUTH_SECRET` with:
+
+```bash
+npx auth secret
+```
+
+4. Start the app and click the `Continuar con Google` button on the login page.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
