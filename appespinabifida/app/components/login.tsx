@@ -13,21 +13,21 @@ export default function Login({ googleConfigured }: LoginProps) {
 
 	if (status === "loading") {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-[#B5D2E6] px-4 py-10">
-				<p className="text-lg font-semibold text-[#173B69]">Cargando...</p>
+			<main className="flex min-h-screen items-center justify-center bg-[#B9E5FB] px-4 py-10">
+				<p className="text-lg font-semibold text-[#003C64]">Cargando...</p>
 			</main>
 		);
 	}
 
 	if (session?.user) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-[#B5D2E6] px-4 py-10">
-				<section className="w-full max-w-[392px] rounded-[20px] bg-[#173B69] px-7 pb-7 pt-8 text-[#ECEDEF] shadow-[0_20px_45px_rgba(18,45,76,0.26)] sm:px-8">
+			<main className="flex min-h-screen items-center justify-center bg-[#B9E5FB] px-4 py-10">
+				<section className="w-full max-w-[392px] rounded-[20px] bg-[#003C64] px-7 pb-7 pt-8 text-[#ECEDEF] shadow-[0_20px_45px_rgba(18,45,76,0.26)] sm:px-8">
 					<p className="text-center text-2xl font-semibold">Bienvenido</p>
 					<p className="mt-3 text-center text-base opacity-90">{session.user.name ?? session.user.email}</p>
 					<Link
 						href="/dashboard"
-						className="mt-6 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-white text-lg font-semibold text-[#173B69] shadow-[0_7px_16px_rgba(10,25,44,0.2)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
+						className="mt-6 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-white text-lg font-semibold text-[#003C64] shadow-[0_7px_16px_rgba(10,25,44,0.2)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
 					>
 						Ir al dashboard
 					</Link>
@@ -44,8 +44,8 @@ export default function Login({ googleConfigured }: LoginProps) {
 	}
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-[#B5D2E6] px-4 py-10">
-			<section className="w-full max-w-[392px] rounded-[20px] bg-[#173B69] px-7 pb-7 pt-8 shadow-[0_20px_45px_rgba(18,45,76,0.26)] sm:px-8">
+		<main className="flex min-h-screen items-center justify-center bg-[#B9E5FB] px-4 py-10">
+			<section className="w-full max-w-[392px] rounded-[20px] bg-[#003C64] px-7 pb-7 pt-8 shadow-[0_20px_45px_rgba(18,45,76,0.26)] sm:px-8">
 				<div className="mb-8 flex items-center justify-center rounded-2xl bg-[#ECEDEF] px-4 py-5 shadow-[0_8px_18px_rgba(9,24,44,0.16)]">
 					<Image
 						src="/LOGO-08.jpg"
@@ -83,11 +83,12 @@ export default function Login({ googleConfigured }: LoginProps) {
 						>
 							Usuario
 						</label>
-						<div className="flex h-14 items-center gap-3 rounded-[14px] bg-[#D9AE45] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]">
+						<div className="flex h-14 items-center gap-3 rounded-[14px] bg-[#E9E9E9] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]">
 							<svg
 								aria-hidden="true"
 								viewBox="0 0 24 24"
-								className="h-5 w-5 shrink-0 text-[#8B6A1A]"
+								className="h-5 w-5 shrink-0 text-gray-500"
+								fill="none"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="2"
@@ -102,7 +103,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 								id="usuario"
 								type="text"
 								placeholder="Ingresa tu usuario"
-								className="h-full w-full bg-transparent text-[22px] text-[#2B2B2B] placeholder:text-[#B6851E] focus:outline-none"
+								className="h-full w-full bg-transparent text-[22px] text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none"
 								autoComplete="username"
 							/>
 						</div>
@@ -115,11 +116,12 @@ export default function Login({ googleConfigured }: LoginProps) {
 						>
 							Contraseña
 						</label>
-						<div className="flex h-14 items-center gap-3 rounded-[14px] bg-[#D9AE45] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]">
+						<div className="flex h-14 items-center gap-3 rounded-[14px] bg-[#E9E9E9] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]">
 							<svg
 								aria-hidden="true"
 								viewBox="0 0 24 24"
-								className="h-5 w-5 shrink-0 text-[#8B6A1A]"
+								className="h-5 w-5 shrink-0 text-gray-500"
+								fill="none"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="2"
@@ -134,7 +136,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 								id="contrasena"
 								type="password"
 								placeholder="Ingresa tu contraseña"
-								className="h-full w-full bg-transparent text-[22px] text-[#2B2B2B] placeholder:text-[#B6851E] focus:outline-none"
+								className="h-full w-full bg-transparent text-[22px] text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none"
 								autoComplete="current-password"
 							/>
 						</div>
@@ -151,7 +153,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 					<button
 						type="button"
 						onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-						className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[14px] border border-[#BFD3EA] bg-white text-base font-semibold text-[#173B69] shadow-[0_6px_16px_rgba(10,25,44,0.16)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
+						className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[14px] border border-[#BFD3EA] bg-white text-base font-semibold text-[#003C64] shadow-[0_6px_16px_rgba(10,25,44,0.16)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
 					>
 						<svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
 							<path
