@@ -1,4 +1,5 @@
 import * as obtenerConsultas from "@/app/api/servicios/obtener/consultas/route";
+import ListItemEstudio from "@/app/components/ListItemEstudio";
 
 export default async function DetalleConsultaPage({
   params,
@@ -9,7 +10,9 @@ export default async function DetalleConsultaPage({
 
   const res = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/obtenerConsultaPorId?id=${(await params).id}`);
   const data = (await res.json()).items[0];
-  console.log(data);
+
+  const resEstudios = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/estudiosConsulta?id=${(await params).id}`);
+  const listaEstudios = (await resEstudios.json()).items;
 
   return (
     <div className="bg-[#B9E5FB] min-h-screen flex flex-col font-sans">
@@ -63,7 +66,7 @@ export default async function DetalleConsultaPage({
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Monto de aportación</span>
-              <span className="text-[14px] text-gray-900">${data.aportacion}</span>
+              <span className="text-[14px] text-gray-900">${data.aportacion} MNX</span>
             </div>
           </div>
         </div>
@@ -89,25 +92,10 @@ export default async function DetalleConsultaPage({
         <div className="bg-white border border-gray-200 rounded-xl px-5 py-4">
           <div className="text-[12px] font-medium text-[#546E7A] uppercase tracking-wider mb-3.5">Estudios solicitados desde esta consulta</div>
 
-          <div className="flex items-center justify-between py-2.5 border-b border-gray-200">
-            <div>
-              <div className="text-[13px] font-medium text-gray-900">Resonancia magnética de columna</div>
-              <div className="text-[12px] text-[#546E7A] mt-0.5">EST-2026-0088 · Solicitado el 07 abr 2026</div>
-            </div>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#FAEEDA] text-[#854F0B]">
-              Pendiente
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between py-2.5">
-            <div>
-              <div className="text-[13px] font-medium text-gray-900">Urocultivo</div>
-              <div className="text-[12px] text-[#546E7A] mt-0.5">EST-2026-0089 · Solicitado el 07 abr 2026</div>
-            </div>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#E6F1FB] text-[#185FA5]">
-              Con resultados
-            </span>
-          </div>
+          {listaEstudios.map((item: any, index: any) => (
+            <ListItemEstudio key={index} data={item} />
+          ))}
+          
         </div>
 
         {/* Recibo vinculado */}

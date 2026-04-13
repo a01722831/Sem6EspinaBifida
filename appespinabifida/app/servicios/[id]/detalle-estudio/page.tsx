@@ -1,9 +1,14 @@
+import Link from "next/link";
+
 export default async function DetalleEstudioPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   await params;
+
+  const res = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/obtenerEstudioPorId?id=${(await params).id}`);
+  const data = (await res.json()).items[0];
 
   return (
     <div className="bg-[#B9E5FB] min-h-screen flex flex-col font-sans">
@@ -13,7 +18,7 @@ export default async function DetalleEstudioPage({
           ← Servicios
         </button>
         <span className="text-[15px] font-medium text-white">Detalle de estudio</span>
-        <span className="ml-auto text-[13px] text-white">Folio: EST-2026-0088</span>
+        <span className="ml-auto text-[13px] text-white">Folio: {data.id_estudio}</span>
       </div>
 
       {/* Content */}
@@ -28,36 +33,36 @@ export default async function DetalleEstudioPage({
             </div>
             <div>
               <div className="text-[14px] font-medium text-gray-900">Martínez Reyes, Juan Carlos</div>
-              <div className="text-[12px] text-[#546E7A]">Asociado #0041 · Activo</div>
+              <div className="text-[12px] text-[#546E7A]">Asociado #{data.id_asociado} · {data.estatus_asociado}</div>
             </div>
           </div>
           <hr className="border-t border-gray-200 my-3.5" />
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Tipo de estudio</span>
-              <span className="text-[14px] text-gray-900">Resonancia magnética</span>
+              <span className="text-[14px] text-gray-900">{data.tipo_estudio}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Estatus</span>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#FAEEDA] text-[#854F0B] w-fit">
-                Pendiente
+                {data.estatus}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Médico responsable</span>
-              <span className="text-[14px] text-gray-900">Dra. Sánchez Vega</span>
+              <span className="text-[14px] text-gray-900">{data.medico_estudio}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Fecha</span>
-              <span className="text-[14px] text-gray-900">10 abr 2026</span>
+              <span className="text-[14px] text-gray-900">{data.fecha}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Hora</span>
-              <span className="text-[14px] text-gray-900">09:00 AM</span>
+              <span className="text-[14px] text-gray-900">{data.hora}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Monto de aportación</span>
-              <span className="text-[14px] text-gray-900">$300.00 MXN</span>
+              <span className="text-[14px] text-gray-900">${data.aportacion} MXN</span>
             </div>
           </div>
         </div>
@@ -67,10 +72,12 @@ export default async function DetalleEstudioPage({
           <div className="text-[12px] font-medium text-[#546E7A] uppercase tracking-wider mb-3.5">Consulta vinculada</div>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[14px] font-medium text-gray-900">Consulta general · CONS-2026-0312</div>
-              <div className="text-[12px] text-[#546E7A]">07 abr 2026 · Dra. Sánchez Vega</div>
+              <div className="text-[14px] font-medium text-gray-900">Tipo de consulta: {data.tipo_consulta} · {data.id_consulta}</div>
+              <div className="text-[12px] text-[#546E7A]">{data.fecha_consulta} · {data.medico_consulta}</div>
             </div>
-            <span className="text-[13px] text-[#185FA5] cursor-pointer underline">Ver consulta ↗</span>
+            <Link href={`/servicios/${data.id_consulta}/detalle-consulta`}>
+              <span className="text-[13px] text-[#185FA5] cursor-pointer underline">Ver consulta ↗</span>
+            </Link>
           </div>
         </div>
 
