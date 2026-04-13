@@ -33,10 +33,10 @@ export default async function DetalleConsultaPage({
           <div className="text-[12px] font-medium text-[#546E7A] uppercase tracking-wider mb-3.5">Datos generales</div>
           <div className="flex items-center gap-2 mb-3.5">
             <div className="w-8 h-8 rounded-full bg-[#E1F5EE] flex items-center justify-center text-[11px] font-medium text-[#0F6E56] shrink-0">
-              MR
+              {data.nombre_asociado[0]}{data.apellidos_asociado[0]}
             </div>
             <div>
-              <div className="text-[14px] font-medium text-gray-900">Martínez Reyes, Juan Carlos</div>
+              <div className="text-[14px] font-medium text-gray-900">{data.apellidos_asociado}, {data.nombre_asociado}</div>
               <div className="text-[12px] text-[#546E7A]">Asociado #{data.id_asociado} · {data.status_asociado}</div>
             </div>
           </div>
