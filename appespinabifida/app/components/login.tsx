@@ -59,7 +59,22 @@ export default function Login({ googleConfigured }: LoginProps) {
 				<form
 					className="space-y-5"
 					aria-label="Formulario de inicio de sesion"
-					onSubmit={(event) => event.preventDefault()}
+					onSubmit={async (event) => {
+						event.preventDefault();
+
+						const formData = new FormData(event.currentTarget);
+
+						const email = formData.get("email");
+						const password = formData.get("password");
+
+						await signIn("credentials", {
+							email,
+							password,
+							callbackUrl: "/dashboard"
+						});
+
+						
+					}}
 				>
 					<div className="space-y-2.5">
 						<label
@@ -83,6 +98,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 								<circle cx="12" cy="8" r="4" />
 							</svg>
 							<input
+								name="email"
 								id="usuario"
 								type="text"
 								placeholder="Ingresa tu usuario"
@@ -114,6 +130,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 								<path d="M7 11V7a5 5 0 0 1 10 0v4" />
 							</svg>
 							<input
+								name="password"
 								id="contrasena"
 								type="password"
 								placeholder="Ingresa tu contraseña"
