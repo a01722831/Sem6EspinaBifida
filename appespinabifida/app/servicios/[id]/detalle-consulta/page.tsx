@@ -1,9 +1,15 @@
+import * as obtenerConsultas from "@/app/api/servicios/obtener/consultas/route";
+
 export default async function DetalleConsultaPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   await params;
+
+  const res = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/obtenerConsultaPorId?id=${(await params).id}`);
+  const data = (await res.json()).items[0];
+  console.log(data);
 
   return (
     <div className="bg-[#B9E5FB] min-h-screen flex flex-col font-sans">
@@ -13,7 +19,7 @@ export default async function DetalleConsultaPage({
           ← Servicios
         </button>
         <span className="text-[15px] font-medium text-white">Detalle de consulta</span>
-        <span className="ml-auto text-[13px] text-white">Folio: CONS-2026-0312</span>
+        <span className="ml-auto text-[13px] text-white">Folio: {data.id_consulta}</span>
       </div>
 
       {/* Content */}
@@ -28,36 +34,36 @@ export default async function DetalleConsultaPage({
             </div>
             <div>
               <div className="text-[14px] font-medium text-gray-900">Martínez Reyes, Juan Carlos</div>
-              <div className="text-[12px] text-[#546E7A]">Asociado #0041 · Activo</div>
+              <div className="text-[12px] text-[#546E7A]">Asociado #{data.id_asociado} · {data.status_asociado}</div>
             </div>
           </div>
           <hr className="border-t border-gray-200 my-3.5" />
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Tipo de consulta</span>
-              <span className="text-[14px] text-gray-900">Consulta general</span>
+              <span className="text-[14px] text-gray-900">{data.tipo_consulta}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Estatus</span>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#EAF3DE] text-[#3B6D11] w-fit">
-                Terminada
+                {data.estatus}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Médico responsable</span>
-              <span className="text-[14px] text-gray-900">Dra. Sánchez Vega</span>
+              <span className="text-[14px] text-gray-900">{data.nombre_medico}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Fecha</span>
-              <span className="text-[14px] text-gray-900">07 abr 2026</span>
+              <span className="text-[14px] text-gray-900">{data.fecha}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Hora</span>
-              <span className="text-[14px] text-gray-900">10:30 AM</span>
+              <span className="text-[14px] text-gray-900">{data.hora}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] text-[#546E7A]">Monto de aportación</span>
-              <span className="text-[14px] text-gray-900">$150.00 MXN</span>
+              <span className="text-[14px] text-gray-900">${data.aportacion}</span>
             </div>
           </div>
         </div>
@@ -68,13 +74,13 @@ export default async function DetalleConsultaPage({
           <div className="mb-2.5">
             <div className="text-[12px] text-[#546E7A] mb-1.5">Diagnóstico</div>
             <div className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 min-h-[60px] leading-relaxed">
-              Mielomeningocele nivel L3-L4. Sin cambios respecto a última consulta. Continuar con seguimiento mensual.
+              {data.diagnostico}
             </div>
           </div>
           <div>
             <div className="text-[12px] text-[#546E7A] mb-1.5">Tratamiento indicado</div>
             <div className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 min-h-[60px] leading-relaxed">
-              Continuar con rehabilitación física 3 veces por semana. Revisión de ortesis en próxima visita.
+              {data.tratamiento}
             </div>
           </div>
         </div>
