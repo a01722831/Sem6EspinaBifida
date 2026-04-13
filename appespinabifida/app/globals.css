@@ -14,10 +14,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-:root {
-  --background: #b9e5fb;
-  --foreground: #ffffff;
-}
 
 body {
   font-family: var(--font-geist-sans), "Segoe UI", Tahoma, sans-serif;
