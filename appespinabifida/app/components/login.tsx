@@ -121,7 +121,6 @@ export default function Login({ googleConfigured }: LoginProps) {
 								autoComplete="current-password"
 							/>
 						</div>
-						
 					</div>
 
 					<button
@@ -135,8 +134,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 					<button
 						type="button"
 						onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-						disabled={!googleConfigured}
-						className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[14px] border border-[#BFD3EA] bg-white text-base font-semibold text-[#173B69] shadow-[0_6px_16px_rgba(10,25,44,0.16)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA] disabled:cursor-not-allowed disabled:opacity-60"
+						className="flex h-[52px] w-full items-center justify-center gap-2 rounded-[14px] border border-[#BFD3EA] bg-white text-base font-semibold text-[#173B69] shadow-[0_6px_16px_rgba(10,25,44,0.16)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
 					>
 						<svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
 							<path
