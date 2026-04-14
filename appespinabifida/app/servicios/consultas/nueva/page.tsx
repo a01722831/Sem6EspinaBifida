@@ -20,15 +20,15 @@ export default function NuevaConsultaPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/asociados/obtenerListaAsociados");
+      const res = await fetch("/api/asociados/lista_asociados");
       if (res.ok) {
         const json = await res.json();
-        setData(json.items);
+        setData(json);
       }
-      const res2 = await fetch("https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/medicos/obtenerMedicos");
+      const res2 = await fetch("/api/medicos/lista_medicos");
       if (res.ok) {
         const json = await res2.json();
-        setMedicos(json.items);
+        setMedicos(json);
       }
     };
     fetchData();
