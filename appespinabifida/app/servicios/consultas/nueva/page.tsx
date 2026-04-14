@@ -1,14 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 
-const ASOCIADOS = [
-  { id: "0041", nombre: "Martínez Reyes, Juan Carlos" },
-  { id: "0042", nombre: "López Hernández, Sofía" },
-  { id: "0043", nombre: "García Pérez, Miguel Ángel" },
-  { id: "0044", nombre: "Ramírez Cruz, Valeria" },
-  { id: "0045", nombre: "Torres Mendoza, Diego" },
-];
 
 function validarHora(valor: string): boolean {
   if (!valor) return true;
@@ -20,6 +14,31 @@ function validarHora(valor: string): boolean {
 }
 
 export default function NuevaConsultaPage() {
+
+  const [data, setData] = useState<any[]>([]);
+  const [medicos, setMedicos] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetch("https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/asociados/obtenerListaAsociados");
+      if (res.ok) {
+        const json = await res.json();
+        setData(json.items);
+      }
+      const res2 = await fetch("https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/medicos/obtenerMedicos");
+      if (res.ok) {
+        const json = await res2.json();
+        setMedicos(json.items);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const listaAsociados = data.map((asociado: any) => ({
+    id: String(asociado.id_asociado),
+    nombre: asociado.nombre + " " + asociado.apellidos,
+  }))
+
   const [query, setQuery] = useState("");
   const [seleccionado, setSeleccionado] = useState<{ id: string; nombre: string } | null>(null);
   const [abierto, setAbierto] = useState(false);
@@ -27,8 +46,45 @@ export default function NuevaConsultaPage() {
   const [hora, setHora] = useState("");
   const [periodo, setPeriodo] = useState("AM");
   const [horaTocada, setHoraTocada] = useState(false);
+  const [tipoConsulta, setTipoConsulta] = useState("");
+  const [fecha, setFecha] = useState("");
+
+  function to24Hour(hora: string, periodo: string) {
+    let [h, m] = hora.split(":").map(Number);
+
+    if (periodo === "PM" && h !== 12) h += 12;
+    if (periodo === "AM" && h === 12) h = 0;
+
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
+  }
 
   const horaInvalida = horaTocada && !validarHora(hora);
+
+  async function agregarConsulta(){
+    const res = await fetch("/api/servicios/agregar",{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        tipo: 0,
+        data: {
+        id_asociado: Number(seleccionado?.id),
+        id_medico: 1,
+        id_recibo: null,
+        tipo_consulta: tipoConsulta,
+        motivo: null,
+        diagnostico: null,
+        tratamiento: null,
+        aportacion: monto,
+        ya_aporto: 0,
+        estatus: abierto,
+        fecha_cita: String(fecha + " " + to24Hour(hora, periodo))
+        }
+      }),
+    })
+    console.log(res);
+  }
 
   function handleMonto(e: React.ChangeEvent<HTMLInputElement>) {
     const digits = e.target.value.replace(/[^0-9]/g, "");
@@ -50,8 +106,8 @@ export default function NuevaConsultaPage() {
     return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
 
-  const sugerencias = ASOCIADOS.filter(
-    (a) =>
+  const sugerencias = listaAsociados.filter(
+    (a: any) =>
       normalizar(a.nombre).includes(normalizar(query)) ||
       a.id.includes(query)
   );
@@ -98,7 +154,7 @@ export default function NuevaConsultaPage() {
             {abierto && query.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-20 overflow-hidden">
                 {sugerencias.length > 0 ? (
-                  sugerencias.map((a) => (
+                  sugerencias.map((a:any) => (
                     <button
                       key={a.id}
                       onMouseDown={() => handleSelect(a)}
@@ -124,7 +180,9 @@ export default function NuevaConsultaPage() {
 
               <div className="flex flex-col gap-1 col-span-2">
                 <label className="text-[12px] text-[#546E7A]">Tipo de consulta</label>
-                <select className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer">
+                <select className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer" onChange={(e) => {
+                  setTipoConsulta(e.target.value);
+                }}>
                   <option value="">Seleccionar tipo...</option>
                   <option value="general">Consulta general</option>
                   <option value="seguimiento">Consulta de seguimiento</option>
@@ -135,10 +193,10 @@ export default function NuevaConsultaPage() {
               <div className="flex flex-col gap-1 col-span-2">
                 <label className="text-[12px] text-[#546E7A]">Médico responsable</label>
                 <select className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer">
-                  <option value="">Seleccionar médico...</option>
-                  <option value="sanchez">Dra. Sánchez Vega</option>
-                  <option value="ramirez">Dr. Ramírez Torres</option>
-                  <option value="flores">Dra. Flores Mendoza</option>
+                  <option id="sinMedico" value="">Selecciona medico responsable</option>
+                  {medicos.map((medico: any) =>(
+                    <option key={"medico" + medico.nombre +String(medico.id_medico)} value={medico.id_medico}>Dr(a) {medico.nombre}</option>
+                  ))}
                 </select>
               </div>
 
@@ -147,6 +205,9 @@ export default function NuevaConsultaPage() {
                 <input
                   type="date"
                   className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer"
+                  onChange={(e) => {
+                    setFecha(e.target.value);
+                  }}
                 />
               </div>
 
@@ -209,7 +270,7 @@ export default function NuevaConsultaPage() {
 
       {/* Actions bar */}
       <div className="bg-[#003C64] px-5 py-3.5 flex flex-wrap gap-2.5 sticky bottom-0">
-        <button className="px-4 py-2 rounded-lg text-[13px] font-medium bg-[#003C64] text-white border border-white/50 cursor-pointer hover:bg-[#002847]">
+        <button className="px-4 py-2 rounded-lg text-[13px] font-medium bg-[#003C64] text-white border border-white/50 cursor-pointer hover:bg-[#002847]" onClick={agregarConsulta}>
           Guardar consulta
         </button>
         <button className="px-4 py-2 rounded-lg text-[13px] font-medium border border-white/20 bg-transparent text-white cursor-pointer hover:bg-white/10">
