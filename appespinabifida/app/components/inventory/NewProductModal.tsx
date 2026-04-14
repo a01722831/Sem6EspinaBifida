@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
-import { createProduct } from '@/lib/api/inventory'
-import type { Category, InventoryItem, InventoryStatus } from '@/lib/types/inventory'
+import { createProduct } from '../../lib/api/inventory'
+import type { Category, InventoryItem, InventoryStatus } from '../../lib/types/inventory'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'

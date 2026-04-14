@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '../ui/Badge'
-import type { InventoryItem } from '@/lib/types/inventory'
+import type { InventoryItem } from '../../lib/types/inventory'
 
 export function InventoryTable({
   items,

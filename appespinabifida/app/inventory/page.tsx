@@ -5,11 +5,11 @@ import { Plus, Search, SquareArrowOutUpRight } from 'lucide-react'
 
 import { listCategories, listInventory } from '@/lib/api/inventory'
 import type { Category, InventoryItem } from '@/lib/types/inventory'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
-import { InventoryTable } from '@/components/inventory/InventoryTable'
-import { NewProductModal } from '@/components/inventory/NewProductModal'
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import { Select } from '../components/ui/Select'
+import { InventoryTable } from '../components/inventory/InventoryTable'
+import { NewProductModal } from '../components/inventory/NewProductModal'
 
 function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debounced, setDebounced] = useState(value)
