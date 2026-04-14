@@ -2,41 +2,63 @@
 
 import { LogOut, User } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation' // Added to detect active route
 
 import { Button } from '../ui/Button'
+import halfLogo from '../../assets/HalfLogo.png' // Visual from Snippet 2
 
+// Combined Snippet 2's labels with Snippet 1's routing structure
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/recibos', label: 'Recibos' },
   { href: '/asociados', label: 'Asociados' },
   { href: '/servicios', label: 'Servicios' },
   { href: '/inventory', label: 'Inventario' },
+  { href: '/metricas', label: 'Métricas' },
 ] as const
 
 export function Topbar() {
+  const pathname = usePathname() // Gets the current URL path
+
   return (
     <header className="bg-slate-800 text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between py-3 px-4">
-        <div className="flex items-center gap-7">
-          <div className="flex h-14 w-15 items-center justify-center rounded-lg bg-white/10 text-xs font-semibold">
-            <span className="text-sm font-bold">EB</span>
+        
+        <div className="flex items-center gap-70">
+          <div className="flex h-14 items-center justify-center rounded-lg bg-white/10">
+            <img 
+              src={typeof halfLogo === 'string' ? halfLogo : halfLogo.src} 
+              alt="Logo" 
+              className="h-10 w-auto object-contain px-2" 
+            />
           </div>
+          
           <nav className="hidden items-center gap-2 md:flex">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full px-6 py-2 text-sm font-medium transition hover:bg-white/10"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              // Dynamically check if this link is the current page
+              const isActive = pathname === item.href
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    'rounded-full px-6 py-2 text-sm font-medium transition',
+                    isActive
+                      ? 'bg-white/10 ring-1 ring-white/20' // Active visual from Snippet 2
+                      : 'hover:bg-white/10',               // Inactive visual
+                  ].join(' ')}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm md:flex">
             <User className="h-4 w-4" />
-            <span>Usuario</span>
+            <span>Lupita</span> {/* User from Snippet 2 */}
           </div>
           <Button
             variant="primary"
