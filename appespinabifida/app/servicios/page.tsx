@@ -1,0 +1,557 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Plus, Search, Stethoscope, FlaskConical } from 'lucide-react'
+
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import { Select } from '../components/ui/Select'
+import { Modal } from '../components/ui/Modal'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Servicio {
+  id: string
+  tipo: 'Consulta' | 'Estudio'
+  folio: string
+  idAsociado: string
+  asociado: string
+  medico: string
+  fecha: string
+  hora: string
+  estatus: 'Pendiente' | 'En proceso' | 'Completado' | 'Cancelado'
+}
+
+// ─── Mock data ────────────────────────────────────────────────────────────────
+// TODO: conectar endpoint — reemplazar mockData con fetch a /api/servicios
+
+const mockData: Servicio[] = [
+  {
+    id: '1',
+    tipo: 'Consulta',
+    folio: 'CON-2024-001',
+    idAsociado: '101',
+    asociado: 'García López, María',
+    medico: 'Dr. Ramírez Torres',
+    fecha: '2024-04-01',
+    hora: '09:00',
+    estatus: 'Completado',
+  },
+  {
+    id: '2',
+    tipo: 'Estudio',
+    folio: 'EST-2024-002',
+    idAsociado: '102',
+    asociado: 'Hernández Vega, Juan',
+    medico: 'Dra. Flores Mendoza',
+    fecha: '2024-04-05',
+    hora: '10:30',
+    estatus: 'En proceso',
+  },
+  {
+    id: '3',
+    tipo: 'Consulta',
+    folio: 'CON-2024-003',
+    idAsociado: '103',
+    asociado: 'Martínez Ruiz, Ana',
+    medico: 'Dr. Ramírez Torres',
+    fecha: '2024-04-08',
+    hora: '11:15',
+    estatus: 'Pendiente',
+  },
+  {
+    id: '4',
+    tipo: 'Estudio',
+    folio: 'EST-2024-004',
+    idAsociado: '104',
+    asociado: 'López Sánchez, Carlos',
+    medico: 'Dr. Vargas Ortiz',
+    fecha: '2024-04-10',
+    hora: '08:45',
+    estatus: 'Cancelado',
+  },
+  {
+    id: '5',
+    tipo: 'Consulta',
+    folio: 'CON-2024-005',
+    idAsociado: '105',
+    asociado: 'Pérez Castillo, Rosa',
+    medico: 'Dra. Flores Mendoza',
+    fecha: '2024-04-12',
+    hora: '14:00',
+    estatus: 'Completado',
+  },
+  {
+    id: '6',
+    tipo: 'Estudio',
+    folio: 'EST-2024-006',
+    idAsociado: '101',
+    asociado: 'García López, María',
+    medico: 'Dr. Vargas Ortiz',
+    fecha: '2024-04-14',
+    hora: '16:30',
+    estatus: 'Pendiente',
+  },
+]
+
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+
+function useDebouncedValue<T>(value: T, delayMs: number) {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebounced(value), delayMs)
+    return () => window.clearTimeout(t)
+  }, [value, delayMs])
+  return debounced
+}
+
+function useServicios() {
+  const [allServicios, setAllServicios] = useState<Servicio[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    setLoading(true)
+    setError(null)
+    // TODO: conectar endpoint — reemplazar con fetch('/api/servicios')
+    Promise.resolve(mockData)
+      .then((data) => {
+        if (!alive) return
+        setAllServicios(data)
+      })
+      .catch(() => {
+        if (!alive) return
+        setError('No se pudo cargar los servicios.')
+      })
+      .finally(() => {
+        if (!alive) return
+        setLoading(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  return { allServicios, loading, error }
+}
+
+// ─── Filtering ────────────────────────────────────────────────────────────────
+
+interface ServicioFilters {
+  folio: string
+  tipo: string
+  asociado: string
+  medico: string
+  fechaInicio: string
+  fechaFin: string
+  estatus: string
+}
+
+function filterServicios(
+  servicios: Servicio[],
+  filters: ServicioFilters,
+): Servicio[] {
+  const folioTerm = filters.folio.toLowerCase().trim()
+  const asociadoTerm = filters.asociado.toLowerCase().trim()
+  return servicios.filter((s) => {
+    if (folioTerm && !s.folio.toLowerCase().includes(folioTerm)) return false
+    if (filters.tipo !== 'Todos' && s.tipo !== filters.tipo) return false
+    if (
+      asociadoTerm &&
+      !s.asociado.toLowerCase().includes(asociadoTerm) &&
+      !s.idAsociado.toLowerCase().includes(asociadoTerm)
+    )
+      return false
+    if (filters.medico !== 'Todos' && s.medico !== filters.medico) return false
+    if (filters.fechaInicio && s.fecha < filters.fechaInicio) return false
+    if (filters.fechaFin && s.fecha > filters.fechaFin) return false
+    if (filters.estatus !== 'Todos' && s.estatus !== filters.estatus)
+      return false
+    return true
+  })
+}
+
+// ─── Badge class helpers ──────────────────────────────────────────────────────
+
+const TIPO_CLASSES: Record<Servicio['tipo'], string> = {
+  Consulta: 'bg-sky-100 text-sky-800',
+  Estudio: 'bg-violet-100 text-violet-800',
+}
+
+const ESTATUS_CLASSES: Record<Servicio['estatus'], string> = {
+  Pendiente: 'bg-amber-100 text-amber-800',
+  'En proceso': 'bg-blue-100 text-blue-800',
+  Completado: 'bg-emerald-100 text-emerald-800',
+  Cancelado: 'bg-rose-100 text-rose-800',
+}
+
+// ─── Nuevo Servicio Modal ─────────────────────────────────────────────────────
+
+const NUEVO_MODAL_TITLE_ID = 'nuevo-servicio-modal-title'
+
+function NuevoServicioModal({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const router = useRouter()
+
+  return (
+    <Modal
+      open={open}
+      titleId={NUEVO_MODAL_TITLE_ID}
+      title="Nuevo servicio"
+      onClose={onClose}
+    >
+      <div className="px-5 pb-5 pt-4">
+        <p className="mb-5 text-sm text-slate-600">
+          Selecciona el tipo de servicio que deseas registrar.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={() => router.push('/servicios/consultas/nueva')}
+            className="flex flex-col items-center gap-3 rounded-xl border-2 border-sky-200 bg-sky-50 p-6 text-center transition hover:border-sky-400 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-200">
+              <Stethoscope className="h-6 w-6 text-sky-700" />
+            </span>
+            <span className="text-sm font-semibold text-sky-800">Consulta</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/servicios/estudios/nueva')}
+            className="flex flex-col items-center gap-3 rounded-xl border-2 border-violet-200 bg-violet-50 p-6 text-center transition hover:border-violet-400 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-200">
+              <FlaskConical className="h-6 w-6 text-violet-700" />
+            </span>
+            <span className="text-sm font-semibold text-violet-800">Estudio</span>
+          </button>
+        </div>
+        <div className="mt-6 flex justify-end border-t border-slate-100 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancelar
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── Servicios Table ──────────────────────────────────────────────────────────
+
+function ServiciosTable({
+  servicios,
+  loading,
+  error,
+  onRowClick,
+}: {
+  servicios: Servicio[]
+  loading: boolean
+  error: string | null
+  onRowClick: (s: Servicio) => void
+}) {
+  return (
+    <div className="w-full overflow-x-auto">
+      <table className="min-w-[900px] w-full border-collapse">
+        <thead>
+          <tr className="bg-slate-600 text-white">
+            <th className="rounded-tl-2xl px-4 py-4 text-left text-sm font-semibold">
+              Tipo
+            </th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Folio</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Asociado</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Médico</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Fecha</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Hora</th>
+            <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
+              Estatus
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-200">
+          {loading ? (
+            <tr>
+              <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>
+                Cargando…
+              </td>
+            </tr>
+          ) : error ? (
+            <tr>
+              <td className="px-4 py-6 text-sm text-rose-700" colSpan={7}>
+                {error}
+              </td>
+            </tr>
+          ) : servicios.length === 0 ? (
+            <tr>
+              <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>
+                Sin resultados.
+              </td>
+            </tr>
+          ) : (
+            servicios.map((s) => (
+              <tr
+                key={s.id}
+                onClick={() => onRowClick(s)}
+                className="cursor-pointer transition hover:bg-slate-50"
+              >
+                <td className="px-4 py-5 text-sm">
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${TIPO_CLASSES[s.tipo]}`}
+                  >
+                    {s.tipo}
+                  </span>
+                </td>
+                <td className="px-4 py-5 text-sm font-medium text-slate-800">
+                  {s.folio}
+                </td>
+                <td className="px-4 py-5 text-sm">
+                  <span className="block font-medium text-slate-800">{s.asociado}</span>
+                  <span className="block text-xs text-slate-400">{s.idAsociado}</span>
+                </td>
+                <td className="px-4 py-5 text-sm text-slate-700">{s.medico}</td>
+                <td className="px-4 py-5 text-sm text-slate-700">{s.fecha}</td>
+                <td className="px-4 py-5 text-sm text-slate-700">{s.hora}</td>
+                <td className="px-4 py-5 text-sm">
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${ESTATUS_CLASSES[s.estatus]}`}
+                  >
+                    {s.estatus}
+                  </span>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function ServiciosPage() {
+  const router = useRouter()
+  const { allServicios, loading, error } = useServicios()
+
+  const [folio, setFolio] = useState('')
+  const [tipo, setTipo] = useState('Todos')
+  const [asociado, setAsociado] = useState('')
+  const [medico, setMedico] = useState('Todos')
+  const [fechaInicio, setFechaInicio] = useState('')
+  const [fechaFin, setFechaFin] = useState('')
+  const [estatus, setEstatus] = useState('Todos')
+  const [nuevoServicioOpen, setNuevoServicioOpen] = useState(false)
+
+  const hasActiveFilters =
+    folio !== '' ||
+    tipo !== 'Todos' ||
+    asociado !== '' ||
+    medico !== 'Todos' ||
+    fechaInicio !== '' ||
+    fechaFin !== '' ||
+    estatus !== 'Todos'
+
+  function clearFilters() {
+    setFolio('')
+    setTipo('Todos')
+    setAsociado('')
+    setMedico('Todos')
+    setFechaInicio('')
+    setFechaFin('')
+    setEstatus('Todos')
+  }
+
+  const debouncedFolio = useDebouncedValue(folio, 400)
+  const debouncedAsociado = useDebouncedValue(asociado, 400)
+
+  const medicoOptions = useMemo(
+    () => [...new Set(allServicios.map((s) => s.medico))].sort(),
+    [allServicios],
+  )
+
+  const filteredServicios = useMemo(
+    () =>
+      filterServicios(allServicios, {
+        folio: debouncedFolio,
+        tipo,
+        asociado: debouncedAsociado,
+        medico,
+        fechaInicio,
+        fechaFin,
+        estatus,
+      }),
+    [allServicios, debouncedFolio, tipo, debouncedAsociado, medico, fechaInicio, fechaFin, estatus],
+  )
+
+  function handleRowClick(s: Servicio) {
+    const ruta =
+      s.tipo === 'Consulta'
+        ? `/servicios/${s.id}/detalle-consulta`
+        : `/servicios/${s.id}/detalle-estudio`
+    router.push(ruta)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
+          Servicios
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="secondary"
+            leftIcon={<Plus className="h-4 w-4" />}
+            onClick={() => setNuevoServicioOpen(true)}
+          >
+            Nuevo servicio
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-slate-200/70">
+        {hasActiveFilters && (
+          <div className="mb-3 flex justify-end">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-sm text-slate-500 underline underline-offset-2 hover:text-slate-800"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {/* Folio — fila completa */}
+          <div className="relative md:col-span-3">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={folio}
+              onChange={(e) => setFolio(e.target.value)}
+              placeholder="Buscar por folio..."
+              aria-label="Buscar por folio"
+              className="pl-9"
+            />
+          </div>
+
+          {/* Asociado */}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={asociado}
+              onChange={(e) => setAsociado(e.target.value)}
+              placeholder="Nombre o ID de asociado..."
+              aria-label="Buscar por nombre o ID de asociado"
+              className="pl-9"
+            />
+          </div>
+
+          {/* Tipo de servicio */}
+          <div className="relative">
+            <Select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              aria-label="Filtrar por tipo de servicio"
+            >
+              <option value="Todos">Todos los tipos</option>
+              <option value="Consulta">Consulta</option>
+              <option value="Estudio">Estudio</option>
+            </Select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              ▼
+            </span>
+          </div>
+
+          {/* Médico */}
+          <div className="relative">
+            <Select
+              value={medico}
+              onChange={(e) => setMedico(e.target.value)}
+              aria-label="Filtrar por médico"
+            >
+              <option value="Todos">Todos los médicos</option>
+              {medicoOptions.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </Select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              ▼
+            </span>
+          </div>
+
+          {/* Fecha inicio */}
+          <div>
+            <span className="mb-1 block text-xs text-slate-500">Desde</span>
+            <Input
+              type="date"
+              value={fechaInicio}
+              max={fechaFin || undefined}
+              onChange={(e) => {
+                const val = e.target.value
+                setFechaInicio(val)
+                if (fechaFin && val > fechaFin) setFechaFin('')
+              }}
+              aria-label="Fecha inicio"
+            />
+          </div>
+
+          {/* Fecha fin */}
+          <div>
+            <span className="mb-1 block text-xs text-slate-500">Hasta</span>
+            <Input
+              type="date"
+              value={fechaFin}
+              min={fechaInicio || undefined}
+              onChange={(e) => setFechaFin(e.target.value)}
+              aria-label="Fecha fin"
+            />
+          </div>
+
+          {/* Estatus */}
+          <div>
+            <span className="mb-1 block text-xs text-transparent select-none">_</span>
+            <div className="relative">
+              <Select
+                value={estatus}
+                onChange={(e) => setEstatus(e.target.value)}
+                aria-label="Filtrar por estatus"
+              >
+                <option value="Todos">Todos los estatus</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Completado">Completado</option>
+                <option value="Cancelado">Cancelado</option>
+              </Select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                ▼
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70">
+        <ServiciosTable
+          servicios={filteredServicios}
+          loading={loading}
+          error={error}
+          onRowClick={handleRowClick}
+        />
+      </div>
+
+      <NuevoServicioModal
+        open={nuevoServicioOpen}
+        onClose={() => setNuevoServicioOpen(false)}
+      />
+    </div>
+  )
+}

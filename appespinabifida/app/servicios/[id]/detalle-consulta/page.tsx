@@ -1,3 +1,6 @@
+// import * as obtenerConsultas from "@/app/api/servicios/obtener/consultas/route";
+// import ListItemEstudio from "@/app/components/ListItemEstudio";
+
 import ListItemEstudio from "@/components/ListItemEstudio";
 
 export default async function DetalleConsultaPage({
