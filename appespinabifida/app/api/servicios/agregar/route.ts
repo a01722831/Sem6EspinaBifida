@@ -26,7 +26,8 @@ type consulta_data = {
     tratamiento: string,
     aportacion: number,
     ya_aporto: 1 | 0,
-    estatus: string
+    estatus: string,
+    fecha_cita: string
 }
 
 export async function POST(request: Request){
@@ -42,6 +43,7 @@ export async function POST(request: Request){
         },
         body: JSON.stringify(body.data),
     });
+    console.log(res);
     const insert_response = (res.ok) ? "Success" : "Failed";
     return Response.json(insert_response);
 }
