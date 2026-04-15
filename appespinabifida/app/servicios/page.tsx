@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -112,27 +112,59 @@ function useServicios() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let alive = true
-    setLoading(true)
-    setError(null)
-    // TODO: conectar endpoint — reemplazar con fetch('/api/servicios')
-    Promise.resolve(mockData)
-      .then((data) => {
-        if (!alive) return
-        setAllServicios(data)
-      })
-      .catch(() => {
-        if (!alive) return
-        setError('No se pudo cargar los servicios.')
-      })
-      .finally(() => {
-        if (!alive) return
-        setLoading(false)
-      })
+    let alive = true;
+    setLoading(true);
+    setError(null);
+
+    const fetchServicios = async () => {
+      try {
+        const res = await fetch("/api/servicios/obtener");
+        if (!res.ok) throw new Error();
+
+        const data = (await res.json()).servicios;
+        const ListaServicios = data.map((servicio: any) => {
+          const [date, timeWithZ] = String(servicio.fecha).split("T");
+          const time = String(timeWithZ).replace("Z", "");
+
+          return {
+            id:
+              servicio.tipo_servicio === "Consulta"
+                ? servicio.id_consulta
+                : servicio.id_estudio,
+            tipo: servicio.tipo_servicio,
+            folio:
+              servicio.tipo_servicio === "Consulta"
+                ? "CON-" + String(servicio.id_consulta)
+                : "EST-" + String(servicio.id_estudio),
+            idAsociado: servicio.asociado,
+            asociado:
+              servicio.nombre_asociado +
+              " " +
+              servicio.apellidos_asociado,
+            medico: servicio.medico,
+            fecha: date,
+            hora: time,
+            estatus: servicio.estatus,
+          };
+        });
+
+        if (!alive) return;
+        setAllServicios(ListaServicios);
+      } catch (error) {
+        if (!alive) return;
+        setError("No se pudo cargar los servicios.");
+      } finally {
+        if (!alive) return;
+        setLoading(false);
+      }
+    };
+
+    fetchServicios();
+
     return () => {
-      alive = false
-    }
-  }, [])
+      alive = false;
+    };
+  }, []);
 
   return { allServicios, loading, error }
 }
@@ -153,15 +185,15 @@ function filterServicios(
   servicios: Servicio[],
   filters: ServicioFilters,
 ): Servicio[] {
-  const folioTerm = filters.folio.toLowerCase().trim()
-  const asociadoTerm = filters.asociado.toLowerCase().trim()
+  const folioTerm = String(filters.folio).toLowerCase().trim()
+  const asociadoTerm = String(filters.asociado).toLowerCase().trim()
   return servicios.filter((s) => {
     if (folioTerm && !s.folio.toLowerCase().includes(folioTerm)) return false
     if (filters.tipo !== 'Todos' && s.tipo !== filters.tipo) return false
     if (
       asociadoTerm &&
       !s.asociado.toLowerCase().includes(asociadoTerm) &&
-      !s.idAsociado.toLowerCase().includes(asociadoTerm)
+      !String(s.idAsociado).toLowerCase().includes(asociadoTerm)
     )
       return false
     if (filters.medico !== 'Todos' && s.medico !== filters.medico) return false
@@ -296,7 +328,7 @@ function ServiciosTable({
           ) : (
             servicios.map((s) => (
               <tr
-                key={s.id}
+                key={s.folio}
                 onClick={() => onRowClick(s)}
                 className="cursor-pointer transition hover:bg-slate-50"
               >

@@ -3,6 +3,7 @@ import * as obtenerConsultas from "./consultas/route";
 import * as obtenerEstudios from "./estudios/route";
 
 type estudio_data = {
+    tipo_servicio: "estudio",
     id_estudio: number,
     id_asociado: number,
     id_medico: number,
@@ -16,6 +17,7 @@ type estudio_data = {
 }
 
 type consulta_data = {
+    tipo_servicio: "consulta",
     id_consulta: number,
     id_asociado: number,
     id_medico: number,
@@ -36,8 +38,8 @@ export async function GET(){
 
     const result = await res.json();
     const result2 = await res2.json();
-    const listaConsultas = result;
-    const listaEstudios = result2;
+    const listaConsultas: consulta_data[] = result;
+    const listaEstudios: estudio_data[] = result2;
     const servicios: (consulta_data | estudio_data)[] = [...listaConsultas, ...listaEstudios];
 
     servicios.sort((a,b) => {
