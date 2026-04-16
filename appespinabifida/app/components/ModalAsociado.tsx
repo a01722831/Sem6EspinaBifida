@@ -396,85 +396,83 @@ export default function ModalAsociado({
 
           {activeTab === "Historial padres" && (
             <div className="space-y-8">
-              <div className="grid grid-cols-1 gap-x-8 gap-y-10 xl:grid-cols-3">
-                <div className="min-w-0 space-y-5">
-                  <Divider label="Historial madre" />
-                  <Field label="Lugar nac.">{d.madreLugarNacimiento}</Field>
-                  <Field label="Escolaridad">{d.madreEscolaridad}</Field>
-                  <Field label="Edad">{d.madreEdad}</Field>
-                  <Field label="Ocupación">{d.madreOcupacion}</Field>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Parentesco con pareja
-                    </span>
-                    <SiNo value={d.madreParentescoConPareja} />
-                  </div>
-                  <Field label="Cd. inicio embarazo">{d.madreCdInicioEmbarazo}</Field>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Ácido fólico antes o durante embarazo
-                    </span>
-                    <SiNo value={d.madreAcidoFolicoAntesDuranteEmbarazo} />
-                  </div>
-                  <Field label="Cant. citas ctrl. prenatal">{d.madreCantidadCitasControlPrenatal}</Field>
-                  <Field label="Seguro">{d.madreSeguro}</Field>
+              <Divider label="Historial madre" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                <Field label="Lugar nac.">{d.madreLugarNacimiento}</Field>
+                <Field label="Escolaridad">{d.madreEscolaridad}</Field>
+                <Field label="Edad">{d.madreEdad}</Field>
+                <Field label="Ocupación">{d.madreOcupacion}</Field>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Parentesco con pareja
+                  </span>
+                  <SiNo value={d.madreParentescoConPareja} />
                 </div>
-
-                <div className="min-w-0 space-y-5">
-                  <Divider label="Historial padre" />
-                  <Field label="Lugar nacimiento">{d.padreLugarNacimiento}</Field>
-                  <Field label="Escolaridad">{d.padreEscolaridad}</Field>
-                  <Field label="Edad">{d.padreEdad}</Field>
-                  <Field label="Ocupación">{d.padreOcupacion}</Field>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Parentesco con pareja
-                    </span>
-                    <SiNo value={d.padreParentescoConPareja} />
-                  </div>
-                  <Field label="Seguro">{d.padreSeguro}</Field>
+                <Field label="Cd. inicio embarazo">{d.madreCdInicioEmbarazo}</Field>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Ácido fólico antes o durante embarazo
+                  </span>
+                  <SiNo value={d.madreAcidoFolicoAntesDuranteEmbarazo} />
                 </div>
+                <Field label="Cant. citas ctrl. prenatal">{d.madreCantidadCitasControlPrenatal}</Field>
+                <Field label="Seguro">{d.madreSeguro}</Field>
+              </div>
 
-                <div className="min-w-0 space-y-5">
-                  <Divider label="Historial ambos" />
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Adicciones
-                    </span>
-                    <div className="rounded-md border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 whitespace-pre-line min-h-18 leading-relaxed">
-                      {d.adiccionesAmbos && d.adiccionesAmbos !== "—"
-                        ? d.adiccionesAmbos
-                        : "—"}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Ha tenido otro hijo con DTN
-                    </span>
-                    <SiNo value={d.otroHijoConDTN} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Tiene algún familiar con DTN
-                    </span>
-                    <SiNo value={d.familiarConDTN} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Exposición a tóxicos antes o durante embarazo
-                    </span>
-                    <SiNo value={d.exposicionToxicosEmbarazo} />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Descripción toxinas
-                    </span>
-                    <div className="rounded-md border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 whitespace-pre-line min-h-18 leading-relaxed">
-                      {d.descripcionToxinas && d.descripcionToxinas !== "—"
-                        ? d.descripcionToxinas
-                        : "—"}
-                    </div>
-                  </div>
+              <Divider label="Historial padre" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                <Field label="Lugar nacimiento">{d.padreLugarNacimiento}</Field>
+                <Field label="Escolaridad">{d.padreEscolaridad}</Field>
+                <Field label="Edad">{d.padreEdad}</Field>
+                <Field label="Ocupación">{d.padreOcupacion}</Field>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Parentesco con pareja
+                  </span>
+                  <SiNo value={d.padreParentescoConPareja} />
+                </div>
+                <Field label="Seguro">{d.padreSeguro}</Field>
+              </div>
+
+              <Divider label="Historial ambos" />
+              <div className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Adicciones
+                </span>
+                <div className="rounded-md border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 whitespace-pre-line min-h-18 leading-relaxed">
+                  {d.adiccionesAmbos && d.adiccionesAmbos !== "—"
+                    ? d.adiccionesAmbos
+                    : "—"}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Ha tenido otro hijo con DTN
+                  </span>
+                  <SiNo value={d.otroHijoConDTN} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Tiene algún familiar con DTN
+                  </span>
+                  <SiNo value={d.familiarConDTN} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Exposición a tóxicos antes o durante embarazo
+                  </span>
+                  <SiNo value={d.exposicionToxicosEmbarazo} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Descripción toxinas
+                </span>
+                <div className="rounded-md border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 whitespace-pre-line min-h-18 leading-relaxed">
+                  {d.descripcionToxinas && d.descripcionToxinas !== "—"
+                    ? d.descripcionToxinas
+                    : "—"}
                 </div>
               </div>
             </div>
