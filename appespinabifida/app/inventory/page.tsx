@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Plus, Search, SquareArrowOutUpRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { listCategories, listInventory } from '@/lib/api/inventory'
 import type { Category, InventoryItem } from '@/lib/types/inventory'
@@ -21,6 +22,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 }
 
 export default function InventoryPage() {
+  const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
   const [categoryId, setCategoryId] = useState<string>('all')
   const [search, setSearch] = useState('')
@@ -132,7 +134,7 @@ export default function InventoryPage() {
           <Button
             variant="secondary"
             leftIcon={<SquareArrowOutUpRight className="h-4 w-4" />}
-            onClick={() => {}}
+            onClick={() => router.push('/inventory/movimientos')}
           >
             Movimiento Inventario
           </Button>
