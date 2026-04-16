@@ -147,9 +147,13 @@ const HEADERS = ["ID", "Nombre", "Estatus", "Fecha de alta"];
 
 type ListaAsociadosProps = {
   items?: AsociadoDetalle[];
+  onUpdateAsociado?: (index: number, next: AsociadoDetalle) => void;
 };
 
-export default function ListaAsociados({ items = initialAsociadosData }: ListaAsociadosProps) {
+export default function ListaAsociados({
+  items = initialAsociadosData,
+  onUpdateAsociado,
+}: ListaAsociadosProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const rows = items.map((row) => ({
@@ -195,6 +199,10 @@ export default function ListaAsociados({ items = initialAsociadosData }: ListaAs
           onClose={handleClose}
           onPrev={selectedIndex > 0 ? handlePrev : undefined}
           onNext={selectedIndex < items.length - 1 ? handleNext : undefined}
+          onSave={(next) => {
+            if (selectedIndex === null) return;
+            onUpdateAsociado?.(selectedIndex, next);
+          }}
         />
       )}
     </>

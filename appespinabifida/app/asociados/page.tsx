@@ -25,7 +25,14 @@ export default function Asociados() {
 
       <div className="flex flex-col items-stretch gap-6 lg:flex-row">
         <Filtros onCreateClick={() => setCreateOpen(true)} />
-        <ListaAsociados items={asociados} />
+        <ListaAsociados
+          items={asociados}
+          onUpdateAsociado={(index, next) => {
+            setAsociados((prev) =>
+              prev.map((item, itemIndex) => (itemIndex === index ? next : item)),
+            );
+          }}
+        />
       </div>
       <CreateAsociadoModal
         open={createOpen}
