@@ -116,7 +116,7 @@ export default function InventoryMovementsPage() {
     }
   }
 
-  function resetToHistory() {
+  function resetFilters() {
     setSearch('')
     setMovementType('all')
     setItemType('all')
@@ -239,9 +239,9 @@ export default function InventoryMovementsPage() {
               <Button
                 variant="secondary"
                 className="w-full justify-center bg-slate-600 hover:bg-slate-500 active:bg-slate-700"
-                onClick={resetToHistory}
+                onClick={resetFilters}
               >
-                Historial
+                Reset filtros
               </Button>
             </div>
           </div>

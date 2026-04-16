@@ -73,6 +73,7 @@ export interface AsociadoDetalle {
   familiarConDTN?: boolean;
   exposicionToxicosEmbarazo?: boolean;
   descripcionToxinas?: string;
+  fotoUrl?: string;
 }
 
 interface ModalAsociadoProps {
@@ -288,9 +289,17 @@ export default function ModalAsociado({
                 {/* Foto */}
                 <div className="shrink-0 flex flex-col items-center gap-2">
                   <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Foto</span>
-                  <div className="w-28 h-28 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-xs text-gray-400 text-center">
-                    Sin imagen
-                  </div>
+                  {d.fotoUrl ? (
+                    <img
+                      src={d.fotoUrl}
+                      alt={`Foto de ${d.nombre}`}
+                      className="h-28 w-28 rounded-xl border border-gray-200 object-cover"
+                    />
+                  ) : (
+                    <div className="w-28 h-28 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-xs text-gray-400 text-center">
+                      Sin imagen
+                    </div>
+                  )}
                 </div>
               </div>
 
