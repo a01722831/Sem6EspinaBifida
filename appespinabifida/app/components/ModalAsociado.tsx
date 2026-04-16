@@ -47,7 +47,6 @@ export default function ModalAsociado({
   onNext,
 }: ModalAsociadoProps) {
   const [activeTab, setActiveTab] = useState("Datos generales");
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay */}
@@ -197,7 +196,7 @@ export default function ModalAsociado({
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Teléfonos</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {asociado.telefonos.join(" / ")}
+                    {Array(asociado.telefonos).join(" / ")}
                   </p>
                 </div>
 
