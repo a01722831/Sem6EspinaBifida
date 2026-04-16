@@ -2,30 +2,9 @@
 
 import { useState } from "react";
 import ListaTabla from "./ListaTabla";
-import ModalAsociado from "./ModalAsociado";
+import ModalAsociado, { type AsociadoDetalle } from "./ModalAsociado";
 
 type Estatus = "Activo" | "Inactivo" | "Pendiente";
-type Sexo = "Masculino" | "Femenino";
-
-interface ContactoEmergencia {
-  nombre: string;
-  telefono: string;
-  relacion: string;
-}
-
-interface Asociado {
-  id: string;
-  folio: string;
-  nombre: string;
-  fechaNacimiento: string;
-  sexo: Sexo;
-  curp: string;
-  direccion: string;
-  telefonos: string[];
-  contactoEmergencia: ContactoEmergencia;
-  fechaAlta: string;
-  estatus: Estatus;
-}
 
 const badgeColors: Record<Estatus, string> = {
   Activo: "bg-green-600/10 text-green-600",
@@ -33,14 +12,46 @@ const badgeColors: Record<Estatus, string> = {
   Pendiente: "bg-yellow-600/10 text-yellow-600",
 };
 
-const mockData: Asociado[] = [
+const mockData: AsociadoDetalle[] = [
   {
-    id: "EB-1002", folio: "EB-1002", nombre: "María García Hernández",
-    fechaNacimiento: "15/06/2010", sexo: "Femenino", curp: "GAHM100615MDFRRRA2",
+    id: "EB-1002",
+    folio: "EB-1002",
+    nombre: "María García Hernández",
+    fechaNacimiento: "15/06/2010",
+    sexo: "Femenino",
+    curp: "GAHM100615MDFRRRA2",
     direccion: "Calle Reforma 123, Col. Centro, CDMX, CP 06000",
     telefonos: ["55 1234 5678", "55 8765 4321"],
-    contactoEmergencia: { nombre: "Juan García López", telefono: "55 1111 2222", relacion: "Padre" },
-    fechaAlta: "20/03/2024", estatus: "Inactivo"
+    contactoEmergencia: {
+      nombre: "Juan García López",
+      telefono: "55 1111 2222",
+      relacion: "Padre",
+    },
+    fechaAlta: "20/03/2024",
+    estatus: "Inactivo",
+    lugarNacimiento: "MONTERREY, N.L.",
+    hospital: "GINE-IMSS",
+    padecimiento: "MIELOMENINGOCELE\nHIDROCEFALIA",
+    valvula: true,
+    controlUrologico: false,
+    madreLugarNacimiento: "SAN LUIS POTOSI",
+    madreEscolaridad: "SECUNDARIA",
+    madreEdad: "45",
+    madreOcupacion: "HOGAR",
+    madreParentescoConPareja: false,
+    madreCdInicioEmbarazo: "MONTERREY, N.L.",
+    madreAcidoFolicoAntesDuranteEmbarazo: false,
+    madreCantidadCitasControlPrenatal: "9",
+    madreSeguro: "SEGURO POPULAR",
+    padreLugarNacimiento: "MONTERREY, N.L.",
+    padreEscolaridad: "SECUNDARIA",
+    padreEdad: "47",
+    padreOcupacion: "EMPLEADA(O)",
+    padreParentescoConPareja: false,
+    padreSeguro: "SEGURO POPULAR",
+    otroHijoConDTN: false,
+    familiarConDTN: false,
+    exposicionToxicosEmbarazo: false,
   },
   {
     id: "EB-1003", folio: "EB-1003", nombre: "Carlos Rodríguez Martínez",
