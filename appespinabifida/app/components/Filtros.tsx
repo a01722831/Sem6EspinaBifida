@@ -1,13 +1,21 @@
 "use client";
 
-export default function Filtros() {
+type FiltrosProps = {
+  onCreateClick?: () => void;
+};
+
+export default function Filtros({ onCreateClick }: FiltrosProps) {
   return (
     <aside className="bg-[#003c64] rounded-2xl p-5 flex flex-col gap-4 w-64 shrink-0">
       <button className="bg-[#F3AD1A] hover:bg-[#F3AD1A]/60 text-black text-sm font-medium py-2 px-4 rounded-md transition-colors">
         Buscar
       </button>
 
-      <button className="bg-navy-800 hover:bg-navy-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors">
+      <button
+        type="button"
+        onClick={onCreateClick}
+        className="bg-navy-800 hover:bg-navy-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+      >
         Agregar asociado
       </button>
 

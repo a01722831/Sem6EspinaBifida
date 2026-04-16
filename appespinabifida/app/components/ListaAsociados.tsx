@@ -12,7 +12,7 @@ const badgeColors: Record<Estatus, string> = {
   Pendiente: "bg-yellow-600/10 text-yellow-600",
 };
 
-const mockData: AsociadoDetalle[] = [
+export const initialAsociadosData: AsociadoDetalle[] = [
   {
     id: "EB-1002",
     folio: "EB-1002",
@@ -145,10 +145,18 @@ const mockData: AsociadoDetalle[] = [
 
 const HEADERS = ["ID", "Nombre", "Estatus", "Fecha de alta"];
 
-export default function ListaAsociados() {
+type ListaAsociadosProps = {
+  items?: AsociadoDetalle[];
+  onUpdateAsociado?: (index: number, next: AsociadoDetalle) => void;
+};
+
+export default function ListaAsociados({
+  items = initialAsociadosData,
+  onUpdateAsociado,
+}: ListaAsociadosProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const rows = mockData.map((row) => ({
+  const rows = items.map((row) => ({
     key: row.id,
     cells: [
       row.id,
@@ -170,13 +178,13 @@ export default function ListaAsociados() {
     }
   };
   const handleNext = () => {
-    if (selectedIndex !== null && selectedIndex < mockData.length - 1) {
+    if (selectedIndex !== null && selectedIndex < items.length - 1) {
       setSelectedIndex(selectedIndex + 1);
     }
   };
 
   const selectedAsociado =
-    selectedIndex !== null ? mockData[selectedIndex] : null;
+    selectedIndex !== null ? items[selectedIndex] : null;
 
   return (
     <>
@@ -190,7 +198,11 @@ export default function ListaAsociados() {
           asociado={selectedAsociado}
           onClose={handleClose}
           onPrev={selectedIndex > 0 ? handlePrev : undefined}
-          onNext={selectedIndex < mockData.length - 1 ? handleNext : undefined}
+          onNext={selectedIndex < items.length - 1 ? handleNext : undefined}
+          onSave={(next) => {
+            if (selectedIndex === null) return;
+            onUpdateAsociado?.(selectedIndex, next);
+          }}
         />
       )}
     </>
