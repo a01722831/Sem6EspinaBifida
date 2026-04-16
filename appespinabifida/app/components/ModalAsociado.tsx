@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ImprimirCredencialButton from "./ImprimirCredencialButton";
 
 type Estatus = "Activo" | "Inactivo" | "Pendiente";
 type Sexo = "Masculino" | "Femenino";
@@ -481,8 +482,9 @@ export default function ModalAsociado({
           )}
 
           {activeTab === "Credencial" && (
-            <div className="flex items-center justify-center h-40">
+            <div className="flex flex-col gap-6">
               <p className="text-gray-400 text-base">Sin información registrada</p>
+              <ImprimirCredencialButton asociado={asociado} />
             </div>
           )}
 
