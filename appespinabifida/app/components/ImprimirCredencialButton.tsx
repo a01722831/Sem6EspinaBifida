@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 import HalfLogoSrc from "../assets/HalfLogo.png";
 import type { AsociadoDetalle } from "./ModalAsociado";
 
 interface ImprimirCredencialButtonProps {
   asociado: AsociadoDetalle;
-  trigger?: number;
 }
 
 async function loadImageAsBase64(url: string): Promise<string | null> {
@@ -28,7 +27,6 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
 
 export default function ImprimirCredencialButton({
   asociado,
-  trigger,
 }: ImprimirCredencialButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -42,10 +40,6 @@ export default function ImprimirCredencialButton({
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
-
-  // Keep a ref to the latest handleGeneratePdf to avoid stale-closure issues
-  // when the effect fires after the trigger changes.
-  const generateRef = useRef<() => void>(() => {});
 
   async function handleGeneratePdf() {
     setIsLoading(true);
@@ -320,15 +314,6 @@ export default function ImprimirCredencialButton({
       setIsLoading(false);
     }
   }
-
-  // Always point the ref at the latest version of the function.
-  generateRef.current = handleGeneratePdf;
-
-  // Fire whenever the parent increments the trigger (i.e. "Credencial" tab click).
-  useEffect(() => {
-    if ((trigger ?? 0) > 0) generateRef.current();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trigger]);
 
   return (
     <div className="flex flex-col items-end gap-2">

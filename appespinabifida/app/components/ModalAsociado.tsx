@@ -177,7 +177,6 @@ export default function ModalAsociado({
   onNext,
 }: ModalAsociadoProps) {
   const [activeTab, setActiveTab] = useState("Datos generales");
-  const [credencialTrigger, setCredencialTrigger] = useState(0);
   const d = useMemo(() => mergeDetalle(asociado), [asociado]);
 
   return (
@@ -242,10 +241,7 @@ export default function ModalAsociado({
             <button
               key={tab}
               type="button"
-              onClick={() => {
-                setActiveTab(tab);
-                if (tab === "Credencial") setCredencialTrigger((n) => n + 1);
-              }}
+              onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-colors border-b-2 ${
                 activeTab === tab
                   ? "border-[#003c64] text-[#003c64] bg-[#003c64]/5"
@@ -487,8 +483,8 @@ export default function ModalAsociado({
 
           {activeTab === "Credencial" && (
             <div className="flex flex-col gap-6">
-              <p className="text-gray-400 text-base">Sin información registrada</p>
-              <ImprimirCredencialButton asociado={asociado} trigger={credencialTrigger} />
+              
+              <ImprimirCredencialButton asociado={asociado} />
             </div>
           )}
 
