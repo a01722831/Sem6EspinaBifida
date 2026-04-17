@@ -37,9 +37,9 @@ export const authOptions: NextAuthOptions = {
 						if (!isValid) return null;
 
 						return {
-							id: user.id,
-							name: user.name,
-							email: user.email,
+							id: String(user.id_usuario),
+							name: user.nombre ?? user.correo,
+							email: user.correo,
 							role: user.role
 						};
 					},
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
 						const dbUser = await getUserByEmail(user.email);
 
 						if (dbUser) {
-						token.id = dbUser.id;
+						token.id = String(dbUser.id_usuario);
 						token.role = dbUser.role;
 						}
 					}

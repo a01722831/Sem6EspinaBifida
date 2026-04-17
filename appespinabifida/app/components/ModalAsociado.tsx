@@ -804,16 +804,6 @@ export default function ModalAsociado({
                   <Field label="Cant. citas ctrl. prenatal">{isEditMode ? <Input value={d.madreCantidadCitasControlPrenatal} onChange={(e) => updateDraft("madreCantidadCitasControlPrenatal", e.target.value)} /> : d.madreCantidadCitasControlPrenatal}</Field>
                   <Field label="Seguro">{isEditMode ? <Input value={d.madreSeguro} onChange={(e) => updateDraft("madreSeguro", e.target.value)} /> : d.madreSeguro}</Field>
                 </div>
-                <Field label="Cd. inicio embarazo">{d.madreCdInicioEmbarazo}</Field>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                    Ácido fólico antes o durante embarazo
-                  </span>
-                  <SiNo value={d.madreAcidoFolicoAntesDuranteEmbarazo} />
-                </div>
-                <Field label="Cant. citas ctrl. prenatal">{d.madreCantidadCitasControlPrenatal}</Field>
-                <Field label="Seguro">{d.madreSeguro}</Field>
-              </div>
 
                 <div className="min-w-0 space-y-5">
                   <Divider label="Historial padre" />
@@ -833,8 +823,6 @@ export default function ModalAsociado({
                   </div>
                   <Field label="Seguro">{isEditMode ? <Input value={d.padreSeguro} onChange={(e) => updateDraft("padreSeguro", e.target.value)} /> : d.padreSeguro}</Field>
                 </div>
-                <Field label="Seguro">{d.padreSeguro}</Field>
-              
 
                 <div className="min-w-0 space-y-5">
                   <Divider label="Historial ambos" />

@@ -3,6 +3,7 @@
 import { LogOut, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation' // Added to detect active route
+import { useSession, signOut } from 'next-auth/react'
 
 import { Button } from '../ui/Button'
 import halfLogo from '../../assets/HalfLogo.png' // Visual from Snippet 2
@@ -18,6 +19,9 @@ const NAV_ITEMS = [
 
 export function Topbar() {
   const pathname = usePathname() // Gets the current URL path
+  const { data: session, status } = useSession()
+
+  if (status === 'loading' || !session) return null
 
   return (
     <header className="bg-slate-800 text-white">
@@ -58,13 +62,13 @@ export function Topbar() {
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm md:flex">
             <User className="h-4 w-4" />
-            <span>Lupita</span> {/* User from Snippet 2 */}
+            <span>{session.user?.name ?? session.user?.email}</span>
           </div>
           <Button
             variant="primary"
             size="sm"
             leftIcon={<LogOut className="h-4 w-4" />}
-            onClick={() => {}}
+            onClick={() => signOut({ callbackUrl: '/' })}
           >
             Salir
           </Button>
