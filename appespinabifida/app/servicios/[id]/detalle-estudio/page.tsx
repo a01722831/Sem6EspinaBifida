@@ -36,6 +36,15 @@ export default async function DetalleEstudioPage({
   );
   const data = await res.json();
 
+  function parseFechaHora(isoString: String) {
+    if (!isoString) return { fecha: null, hora: null };
+
+    const [fecha, timePart] = isoString.split('T');
+    const hora = timePart ? timePart.replace('Z', '') : null;
+
+    return { fecha, hora };
+  }
+
   return (
     <div className="space-y-6">
 
@@ -115,11 +124,11 @@ export default async function DetalleEstudioPage({
           </div>
           <div>
             <span className="mb-0.5 block text-xs text-slate-500">Fecha</span>
-            <span className="text-sm text-slate-800">{data.fecha}</span>
+            <span className="text-sm text-slate-800">{parseFechaHora(data.fecha).fecha}</span>
           </div>
           <div>
             <span className="mb-0.5 block text-xs text-slate-500">Hora</span>
-            <span className="text-sm text-slate-800">{data.hora}</span>
+            <span className="text-sm text-slate-800">{parseFechaHora(data.fecha).hora}</span>
           </div>
           <div>
             <span className="mb-0.5 block text-xs text-slate-500">

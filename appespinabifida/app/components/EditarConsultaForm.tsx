@@ -15,7 +15,7 @@ const LABORATORIOS_MOCK = [
   { id: 'L05', nombre: 'Diagnóstica del Norte' },
 ]
 
-export default function EditarConsultaForm({ data }: { data: any }) {
+export default function EditarConsultaForm({ id, data }: { id: any,  data: any }) {
   const router = useRouter()
 
   const [medicos, setMedicos] = useState<any[]>([])
@@ -51,7 +51,6 @@ export default function EditarConsultaForm({ data }: { data: any }) {
             id_consulta: data.id_consulta,
             id_asociado: data.id_asociado,
             id_medico: idMedico,
-            id_estudio: data.id_estudio ?? null,
             id_recibo: data.id_recibo ?? null,
             tipo_consulta: tipoConsulta,
             motivo: data.motivo ?? null,
