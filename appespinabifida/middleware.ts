@@ -5,5 +5,10 @@ export default withAuth(function middleware() {
 });
 
 export const config = {
-	matcher: ["/dashboard/:path*"],
+	matcher: [
+		"/dashboard/:path*",
+		"/asociados/:path*",
+		"/servicios/:path*",
+		"/inventory/:path*",
+	],
 };
