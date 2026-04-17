@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import ImprimirOrdenButton from "../../../components/ImprimirOrdenButton";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,14 @@ export default async function DetalleEstudioPage({
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <ImprimirOrdenButton
+              estudioId={data.id_estudio}
+              nombreAsociado={data.nombre_asociado ?? ""}
+              apellidosAsociado={data.apellidos_asociado ?? ""}
+              tipoEstudio={data.tipo_estudio ?? ""}
+              fecha={data.fecha ?? ""}
+              medicoEstudio={data.medico_estudio ?? ""}
+            />
             <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10">
               Editar estudio
             </button>
@@ -145,14 +154,9 @@ export default async function DetalleEstudioPage({
 
       {/* Resultados del estudio */}
       <div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70 px-6 py-5">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Resultados del estudio
-          </h2>
-          <button className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-transparent px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 h-9">
-            Imprimir orden
-          </button>
-        </div>
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Resultados del estudio
+        </h2>
         <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
           <p className="text-sm text-slate-400">
             Aún no se han registrado resultados para este estudio.

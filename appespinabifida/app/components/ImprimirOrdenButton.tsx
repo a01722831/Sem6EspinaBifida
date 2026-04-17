@@ -3,30 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 
-type EstudioApiItem = {
-  nombre_asociado?: string;
-  apellidos_asociado?: string;
-  tipo_estudio?: string;
-  fecha?: string;
-  medico_estudio?: string;
-  nombre_medico?: string;
+type ImprimirOrdenButtonProps = {
+  estudioId: string | number;
+  nombreAsociado: string;
+  apellidosAsociado: string;
+  tipoEstudio: string;
+  fecha: string;
+  medicoEstudio: string;
 };
 
-function normalizeNombreAsociado(item: EstudioApiItem): string {
-  const nombre = item.nombre_asociado?.trim() ?? "";
-  const apellidos = item.apellidos_asociado?.trim() ?? "";
-
-  if (nombre && apellidos) {
-    return `${apellidos}, ${nombre}`;
-  }
-
-  return nombre || apellidos || "No disponible";
-}
-
-export default function ImprimirOrdenButton() {
-  const [estudioId, setEstudioId] = useState("1");
+export default function ImprimirOrdenButton({
+  estudioId,
+  nombreAsociado,
+  apellidosAsociado,
+  tipoEstudio,
+  fecha,
+  medicoEstudio,
+}: ImprimirOrdenButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [downloadName, setDownloadName] = useState("orden-estudio.pdf");
 
@@ -40,121 +34,76 @@ export default function ImprimirOrdenButton() {
     };
   }, [previewUrl]);
 
-  async function handleGeneratePdf() {
-    const cleanId = estudioId.trim();
-
-    if (!cleanId) {
-      setErrorMessage("Ingresa un id de estudio para continuar.");
-      return;
-    }
-
+  function handleGeneratePdf() {
     setIsLoading(true);
-    setErrorMessage("");
 
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
       setPreviewUrl("");
     }
 
-    try {
-      const response = await fetch(
-        `/api/servicios/obtener/estudio-por-id?id=${encodeURIComponent(cleanId)}`
-      );
-      const payload = await response.json();
+    const cleanId = String(estudioId);
+    const nombreCompleto =
+      nombreAsociado && apellidosAsociado
+        ? `${apellidosAsociado.trim()}, ${nombreAsociado.trim()}`
+        : nombreAsociado || apellidosAsociado || "No disponible";
 
-      if (!response.ok) {
-        setErrorMessage(payload?.error ?? "No se pudo obtener el estudio.");
-        return;
-      }
+    const doc = new jsPDF({ format: "a4", unit: "mm" });
 
-      const item = payload?.item as EstudioApiItem | undefined;
+    doc.setFillColor(0, 60, 100);
+    doc.rect(0, 0, 210, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Orden de Estudio", 14, 16);
 
-      if (!item) {
-        setErrorMessage("No hay informacion disponible para este estudio.");
-        return;
-      }
+    doc.setTextColor(42, 42, 42);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`ID de estudio: ${cleanId}`, 14, 34);
 
-      const nombreAsociado = normalizeNombreAsociado(item);
-      const tipoEstudio = item.tipo_estudio?.trim() || "No disponible";
-      const fechaCita = item.fecha?.trim() || "No disponible";
-      const medicoResponsable =
-        item.medico_estudio?.trim() ||
-        item.nombre_medico?.trim() ||
-        "No disponible";
+    doc.setDrawColor(220, 220, 220);
+    doc.line(14, 38, 196, 38);
 
-      const doc = new jsPDF({ format: "a4", unit: "mm" });
-
-      doc.setFillColor(0, 60, 100);
-      doc.rect(0, 0, 210, 26, "F");
-      doc.setTextColor(255, 255, 255);
+    let y = 48;
+    const writeField = (label: string, value: string) => {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.text("Orden de Estudio", 14, 16);
+      doc.setTextColor(0, 60, 100);
+      doc.text(label, 14, y);
 
-      doc.setTextColor(42, 42, 42);
+      y += 6;
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-      doc.text(`ID de estudio: ${cleanId}`, 14, 34);
+      doc.setTextColor(33, 37, 41);
 
-      doc.setDrawColor(220, 220, 220);
-      doc.line(14, 38, 196, 38);
+      const lines = doc.splitTextToSize(value, 182);
+      doc.text(lines, 14, y);
+      y += lines.length * 6 + 4;
+    };
 
-      let y = 48;
-      const writeField = (label: string, value: string) => {
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 60, 100);
-        doc.text(label, 14, y);
+    writeField("Nombre del asociado", nombreCompleto);
+    writeField("Tipo de estudio", tipoEstudio || "No disponible");
+    writeField("Fecha de la cita", fecha || "No disponible");
+    writeField("Médico responsable", medicoEstudio || "No disponible");
 
-        y += 6;
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(33, 37, 41);
-
-        const lines = doc.splitTextToSize(value, 182);
-        doc.text(lines, 14, y);
-        y += lines.length * 6 + 4;
-      };
-
-      writeField("Nombre del asociado", nombreAsociado);
-      writeField("Tipo de estudio", tipoEstudio);
-      writeField("Fecha de la cita", fechaCita);
-      writeField("Medico responsable", medicoResponsable);
-
-      const blob = doc.output("blob");
-      const blobUrl = URL.createObjectURL(blob);
-      setPreviewUrl(blobUrl);
-      setDownloadName(`orden-estudio-${cleanId}.pdf`);
-    } catch {
-      setErrorMessage("Error al generar el PDF. Intenta nuevamente.");
-    } finally {
-      setIsLoading(false);
-    }
+    const blob = doc.output("blob");
+    const blobUrl = URL.createObjectURL(blob);
+    setPreviewUrl(blobUrl);
+    setDownloadName(`orden-estudio-${cleanId}.pdf`);
+    setIsLoading(false);
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <input
-          type="text"
-          value={estudioId}
-          onChange={(event) => setEstudioId(event.target.value)}
-          placeholder="ID estudio"
-          className="w-28 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64]"
-        />
-        <button
-          type="button"
-          onClick={handleGeneratePdf}
-          disabled={isLoading}
-          className="rounded-md bg-[#003C64] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#002847] disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isLoading ? "Generando..." : "Imprimir Orden"}
-        </button>
-      </div>
+    <>
+      <button
+        type="button"
+        onClick={handleGeneratePdf}
+        disabled={isLoading}
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isLoading ? "Generando..." : "Imprimir orden"}
+      </button>
 
-      {errorMessage ? (
-        <p className="max-w-xs text-right text-xs text-red-600">{errorMessage}</p>
-      ) : null}
-
-      {hasPreview ? (
+      {hasPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-200 bg-[#003C64] px-4 py-3 text-white">
@@ -190,7 +139,7 @@ export default function ImprimirOrdenButton() {
             </div>
           </div>
         </div>
-      ) : null}
-    </div>
+      )}
+    </>
   );
 }
