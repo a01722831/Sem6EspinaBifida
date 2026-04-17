@@ -21,6 +21,7 @@ type FormState = {
   id: string;
   fechaAlta: string;
   nombre: string;
+  apellidos: string;
   curp: string;
   fechaNacimiento: string;
   edad: string;
@@ -92,6 +93,7 @@ function initialForm(): FormState {
     id: "",
     fechaAlta: "",
     nombre: "",
+    apellidos: "",
     curp: "",
     fechaNacimiento: "",
     edad: "",
@@ -168,6 +170,28 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabName>("Datos generales");
+
+  async function agregarAsociado(){
+    const res = await fetch("/api/asociados/agregar",{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form)
+    })
+    if (res.ok){
+      const data = await res.json();
+      if (data.status = "ok"){
+        alert("Se creo el asociado correctamente");
+      }
+      else{
+        alert(data.reason);
+      }
+    }
+    else{
+      alert("No se pudo conectar con el servicio de agregado de asociados");
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -290,7 +314,8 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
         descripcionToxinas: form.descripcionToxinas.trim() || "—",
       };
 
-      // Agregar llamada al API para crear al asociado
+      
+      agregarAsociado();
       onClose();
     } catch {
       setSubmitError("No se pudo crear el asociado. Intenta de nuevo.");
@@ -330,11 +355,6 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <FieldLabel>ID</FieldLabel>
-                  <Input value={form.id} onChange={(e) => update("id", e.target.value)} />
-                  <ErrorText text={errors.id} />
-                </div>
-                <div>
                   <FieldLabel>Fecha de alta</FieldLabel>
                   <Input
                     type="date"
@@ -367,10 +387,21 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel>Nombre completo</FieldLabel>
-                  <Input value={form.nombre} onChange={(e) => update("nombre", e.target.value)} />
+                <div>
+                  <FieldLabel>Nombre</FieldLabel>
+                  <Input
+                    value={form.nombre}
+                    onChange={(e) => update("nombre", e.target.value)}
+                  />
                   <ErrorText text={errors.nombre} />
+                </div>
+
+                <div>
+                  <FieldLabel>Apellidos</FieldLabel>
+                  <Input
+                    value={form.apellidos}
+                    onChange={(e) => update("apellidos", e.target.value)}
+                  />
                 </div>
                 <div>
                   <FieldLabel>CURP</FieldLabel>
@@ -809,7 +840,7 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" variant="secondary" disabled={submitting}>
+          <Button type="submit" variant="secondary" disabled={submitting} onClick={agregarAsociado}>
             {submitting ? "Guardando..." : "Guardar asociado"}
           </Button>
         </div>
