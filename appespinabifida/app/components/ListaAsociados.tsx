@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect} from "react";
 import ListaTabla from "./ListaTabla";
 import ModalAsociado, { type AsociadoDetalle } from "./ModalAsociado";
 
@@ -12,7 +13,7 @@ const badgeColors: Record<Estatus, string> = {
   Pendiente: "bg-yellow-600/10 text-yellow-600",
 };
 
-const mockData: AsociadoDetalle[] = [
+export const initialAsociadosData: AsociadoDetalle[] = [
   {
     id: "EB-1002",
     folio: "EB-1002",
@@ -145,10 +146,72 @@ const mockData: AsociadoDetalle[] = [
 
 const HEADERS = ["ID", "Nombre", "Estatus", "Fecha de alta"];
 
-export default function ListaAsociados() {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+interface Filters  {
+  id: number|null,
+  nombre: string,
+  fecha: string,
+  estatus: string
+}
+type ListaAsociadosProps = {
+  onUpdateAsociado?: (index: number, next: AsociadoDetalle) => void,
+  filtros: Filters
+};
 
-  const rows = mockData.map((row) => ({
+export default function ListaAsociados({
+  onUpdateAsociado,
+  filtros
+}: ListaAsociadosProps) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [RawData, setRawData] = useState<AsociadoDetalle[]>([]);
+  const [Data, setData] = useState<AsociadoDetalle[]>([]);
+
+  useEffect(() => {
+    const data = async () =>{
+      const res = await fetch("/api/asociados/lista_asociados");
+      if (res.ok){
+        const data = await res.json();
+        setRawData(data);
+        setData(data);
+      }
+    }
+    data();
+  }, [])
+
+  useEffect(() => {
+    setData(RawData.filter(element => {
+      let idFilter = false;
+      let nombreFilter = false;
+      let fechaFilter = false;
+      let statusFilter = false;
+      if (filtros.id == null || filtros.id == 0){
+        idFilter = true;
+      }
+      else if (filtros.id == Number(element.id)){
+        idFilter = true;
+      }
+      if (filtros.nombre == ""){
+        nombreFilter = true;
+      }
+      else if (String(element.nombre).includes(filtros.nombre)){
+        nombreFilter = true;
+      }
+      if (filtros.fecha == ""){
+        fechaFilter = true;
+      }
+      else if (filtros.fecha == String(element.fechaAlta)){
+        fechaFilter = true;
+      }
+      if (filtros.estatus == ""){
+        statusFilter = true;
+      }
+      else if (filtros.estatus == String(element.estatus)){
+        statusFilter = true;
+      }
+      return idFilter && nombreFilter && fechaFilter && statusFilter
+    }));
+  }, [filtros]);
+
+  const rows = Data.map((row) => ({
     key: row.id,
     cells: [
       row.id,
@@ -170,13 +233,14 @@ export default function ListaAsociados() {
     }
   };
   const handleNext = () => {
-    if (selectedIndex !== null && selectedIndex < mockData.length - 1) {
+
+    if (selectedIndex !== null && selectedIndex < Data.length - 1) {
+
       setSelectedIndex(selectedIndex + 1);
     }
   };
 
-  const selectedAsociado =
-    selectedIndex !== null ? mockData[selectedIndex] : null;
+  const selectedAsociado = selectedIndex !== null ? Data[selectedIndex] : null;
 
   return (
     <>
@@ -190,7 +254,11 @@ export default function ListaAsociados() {
           asociado={selectedAsociado}
           onClose={handleClose}
           onPrev={selectedIndex > 0 ? handlePrev : undefined}
-          onNext={selectedIndex < mockData.length - 1 ? handleNext : undefined}
+          onNext={selectedIndex < Data.length - 1 ? handleNext : undefined}
+          onSave={(next) => {
+            if (selectedIndex === null) return;
+            onUpdateAsociado?.(selectedIndex, next);
+          }}
         />
       )}
     </>
