@@ -15,6 +15,7 @@ type FormState = {
   etapaVida: string;
   vive: "si" | "no";
   fechaUltRecibo: string;
+  direccion: string;
   ciudad: string;
   estado: string;
   cp: string;
