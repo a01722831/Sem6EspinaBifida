@@ -58,6 +58,12 @@ export default async function DetalleEstudioPage({
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/servicios/${id}/editar-estudio`}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10"
+            >
+              Editar estudio
+            </Link>
             <ImprimirOrdenButton
               estudioId={data.id_estudio}
               nombreAsociado={data.nombre_asociado ?? ""}
@@ -66,9 +72,6 @@ export default async function DetalleEstudioPage({
               fecha={data.fecha ?? ""}
               medicoEstudio={data.medico_estudio ?? ""}
             />
-            <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10">
-              Editar estudio
-            </button>
           </div>
         </div>
       </div>
