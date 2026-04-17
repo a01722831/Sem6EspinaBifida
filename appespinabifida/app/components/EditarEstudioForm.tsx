@@ -47,6 +47,7 @@ export default function EditarEstudioForm({ data }: { data: any }) {
     try {
       const fechaCita =
         fecha && hora ? `${fecha} ${hora}:00` : (data.fecha_cita ?? '')
+      alert(fechaCita);
       const res = await fetch('/api/servicios/editar', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -55,6 +56,7 @@ export default function EditarEstudioForm({ data }: { data: any }) {
           data: {
             id_estudio: data.id_estudio,
             id_asociado: data.id_asociado,
+            id_consulta: data.id_consulta,
             id_medico: idMedico,
             id_tipo_estudio: idTipoEstudio,
             laboratorio,

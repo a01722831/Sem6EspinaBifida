@@ -12,5 +12,5 @@ export default async function EditarConsultaPage({
   );
   const data = await res.json();
 
-  return <EditarConsultaForm data={data} />;
+  return <EditarConsultaForm id ={id} data={data} />;
 }
