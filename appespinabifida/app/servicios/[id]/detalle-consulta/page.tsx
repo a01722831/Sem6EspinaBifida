@@ -63,17 +63,14 @@ export default async function DetalleConsultaPage({
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10">
+            <Link
+              href={`/servicios/${id}/editar-consulta`}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10"
+            >
               Editar consulta
-            </button>
-            <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10">
-              Editar diagnóstico
-            </button>
+            </Link>
             <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10">
               Solicitar estudio
-            </button>
-            <button className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-10">
-              Cambiar estatus
             </button>
           </div>
         </div>
