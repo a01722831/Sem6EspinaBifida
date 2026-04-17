@@ -25,9 +25,6 @@ export default function Asociados() {
     fecha: "",
     estatus: ""
   });
-  const [asociados, setAsociados] = useState<AsociadoDetalle[]>(
-    initialAsociadosData,
-  );
   const [createOpen, setCreateOpen] = useState(false);
  return (
     <main className="space-y-6 text-slate-900">
@@ -37,19 +34,11 @@ export default function Asociados() {
 
       <div className="flex flex-col items-stretch gap-6 lg:flex-row">
         <Filtros sendFilters={setFiltros} onCreateClick={() => setCreateOpen(true)}/>
-        <ListaAsociados filtros={filtros} items={asociados}
-          onUpdateAsociado={(index, next) => {
-            setAsociados((prev) =>
-              prev.map((item, itemIndex) => (itemIndex === index ? next : item)),
-            );
-          }}/>
+        <ListaAsociados filtros={filtros}/>
       </div>
       <CreateAsociadoModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreate={(newAsociado) => {
-          setAsociados((prev) => [newAsociado, ...prev]);
-        }}
       />
     </main>
   );

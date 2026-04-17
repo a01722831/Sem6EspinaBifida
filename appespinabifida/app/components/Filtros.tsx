@@ -6,7 +6,7 @@ type FilterProps = {
   onCreateClick?: () => void;
 }
 
-export default function Filtros({sendFilters} : FilterProps) {
+export default function Filtros({sendFilters, onCreateClick} : FilterProps) {
 
   const [id, setId] = useState<number | null>(null);
   const [nombre, setNombre] = useState<String>("");
@@ -23,7 +23,6 @@ export default function Filtros({sendFilters} : FilterProps) {
     sendFilters(Filters);
   }
 
-export default function Filtros({ onCreateClick }: FilterProps) {
   return (
     <aside className="bg-[#003c64] rounded-2xl p-5 flex flex-col gap-4 w-64 shrink-0">
       <button onClick={applyFilters} className="bg-[#F3AD1A] hover:bg-[#F3AD1A]/60 text-black text-sm font-medium py-2 px-4 rounded-md transition-colors">
@@ -66,4 +65,4 @@ export default function Filtros({ onCreateClick }: FilterProps) {
       </div>
     </aside>
   );
-}}
+}

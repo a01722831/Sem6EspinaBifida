@@ -12,7 +12,6 @@ import type { AsociadoDetalle } from "./ModalAsociado";
 type Props = {
   open: boolean;
   onClose: () => void;
-  onCreate: (asociado: AsociadoDetalle) => void;
 };
 
 type Sexo = "Masculino" | "Femenino";
@@ -163,7 +162,7 @@ function ErrorText({ text }: { text?: string }) {
   return <p className="mt-1 text-sm text-rose-700">{text}</p>;
 }
 
-export default function CreateAsociadoModal({ open, onClose, onCreate }: Props) {
+export default function CreateAsociadoModal({ open, onClose}: Props) {
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -291,7 +290,7 @@ export default function CreateAsociadoModal({ open, onClose, onCreate }: Props) 
         descripcionToxinas: form.descripcionToxinas.trim() || "—",
       };
 
-      onCreate(asociado);
+      // Agregar llamada al API para crear al asociado
       onClose();
     } catch {
       setSubmitError("No se pudo crear el asociado. Intenta de nuevo.");

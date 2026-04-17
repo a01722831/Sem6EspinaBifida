@@ -153,13 +153,11 @@ interface Filters  {
   estatus: string
 }
 type ListaAsociadosProps = {
-  items?: AsociadoDetalle[],
   onUpdateAsociado?: (index: number, next: AsociadoDetalle) => void,
   filtros: Filters
 };
 
 export default function ListaAsociados({
-  items = initialAsociadosData,
   onUpdateAsociado,
   filtros
 }: ListaAsociadosProps) {
