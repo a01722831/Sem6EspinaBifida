@@ -1,12 +1,12 @@
 "use client";
 
 
-import { useMemo, useState } from "react";
 import ImprimirCredencialButton from "./ImprimirCredencialButton";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "./ui/Input";
 import { Select } from "./ui/Select";
 import { Textarea } from "./ui/Textarea";
+import { useRouter } from "next/navigation";
 
 
 type Estatus = "Activo" | "Inactivo" | "Pendiente";
@@ -191,7 +191,7 @@ function mergeDetalle(a: AsociadoDetalle) {
     telTrabajo: a.telTrabajo ?? t1 ?? "—",
     telCel: a.telCel ?? t2 ?? t1 ?? t0 ?? "—",
   };
-}
+} 
 
 export default function ModalAsociado({
   asociado,
@@ -200,6 +200,9 @@ export default function ModalAsociado({
   onNext,
   onSave,
 }: ModalAsociadoProps) {
+
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState("Datos generales");
   const base = useMemo(() => mergeDetalle(asociado), [asociado]);
   const [draft, setDraft] = useState(() => mergeDetalle(asociado));
@@ -226,7 +229,7 @@ export default function ModalAsociado({
     setIsEditMode(false);
   }
 
-  function handleSave() {
+  async function handleSave() {
     const telefonos = [draft.telCasa, draft.telTrabajo, draft.telCel].filter(
       (v) => Boolean(v && v !== "—"),
     ) as string[];
@@ -236,8 +239,25 @@ export default function ModalAsociado({
       telefonos: telefonos.length ? telefonos : ["—"],
       contactoEmergencia: draft.contactoEmergencia,
     };
+
+    const res = await fetch("/api/asociados/editar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(draft),
+    })
+    
     onSave?.(next);
     setIsEditMode(false);
+
+    if (res.ok){
+      const data = await res.json();
+      if(data.status = "ok"){
+        window.location.reload();
+      }
+    }
+
   }
 
   function handleClose() {
@@ -890,7 +910,7 @@ export default function ModalAsociado({
                   </div>
                 </div>
               </div>
-            
+            </div>
           )}
 
           {activeTab === "Credencial" && (
