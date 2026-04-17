@@ -138,16 +138,8 @@ export default function ImprimirCredencialButton({
         { align: "right" }
       );
 
-      // "A" status badge (small red circle, right end of Nombre row)
-      doc.setFillColor(200, 40, 40);
-      doc.circle(FR - 2, TOP_Y + PAD + 11, 2.2, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(6);
-      doc.text("A", FR - 2, TOP_Y + PAD + 11.7, { align: "center" });
-
       // Nombre
-      drawField("Nombre:", asociado.nombre, LOGO_RIGHT, TOP_Y + PAD + 12, FR - 6);
+      drawField("Nombre:", asociado.nombre, LOGO_RIGHT, TOP_Y + PAD + 12, FR);
 
       // Dirección
       drawField(
