@@ -1,58 +1,42 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 
-type LoginProps = {
-	googleConfigured: boolean;
-};
-
-export default function Login({ googleConfigured }: LoginProps) {
+export default function Login() {
 	const { data: session, status } = useSession();
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const error = searchParams.get("error");
+
+	useEffect(() => {
+		if (session?.user) {
+			router.replace("/dashboard");
+		}
+	}, [session, router]);
 
 	if (status === "loading") {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-[#B9E5FB] px-4 py-10">
+			<main className="fixed inset-0 flex items-center justify-center bg-[#B9E5FB]">
 				<p className="text-lg font-semibold text-[#003C64]">Cargando...</p>
 			</main>
 		);
 	}
 
-	if (session?.user) {
-		return (
-			<main className="flex min-h-screen items-center justify-center bg-[#B9E5FB] px-4 py-10">
-				<section className="w-full max-w-[392px] rounded-[20px] bg-[#003C64] px-7 pb-7 pt-8 text-[#ECEDEF] shadow-[0_20px_45px_rgba(18,45,76,0.26)] sm:px-8">
-					<p className="text-center text-2xl font-semibold">Bienvenido</p>
-					<p className="mt-3 text-center text-base opacity-90">{session.user.name ?? session.user.email}</p>
-					<Link
-						href="/dashboard"
-						className="mt-6 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-white text-lg font-semibold text-[#003C64] shadow-[0_7px_16px_rgba(10,25,44,0.2)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
-					>
-						Ir al dashboard
-					</Link>
-					<button
-						type="button"
-						onClick={() => signOut({ callbackUrl: "/" })}
-						className="mt-4 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#D2D3D5] text-xl font-semibold text-[#202226] shadow-[0_7px_16px_rgba(10,25,44,0.2)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
-					>
-						Cerrar sesion
-					</button>
-				</section>
-			</main>
-		);
-	}
+	if (session?.user) return null;
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-[#B9E5FB] px-4 py-10">
+		<main className="fixed inset-0 flex items-center justify-center bg-[#B9E5FB] overflow-hidden px-4">
 			<section className="w-full max-w-[392px] rounded-[20px] bg-[#003C64] px-7 pb-7 pt-8 shadow-[0_20px_45px_rgba(18,45,76,0.26)] sm:px-8">
-				<div className="mb-8 flex items-center justify-center rounded-2xl bg-[#ECEDEF] px-4 py-5 shadow-[0_8px_18px_rgba(9,24,44,0.16)]">
+				<div className="mb-6 flex items-center justify-center rounded-2xl bg-white px-4 py-3 shadow-[0_8px_18px_rgba(9,24,44,0.16)]">
 					<Image
 						src="/LOGO-08.jpg"
 						alt="Asociacion de Espina Bifida"
-						width={255}
-						height={130}
-						className="h-auto w-[255px]"
+						width={220}
+						height={112}
+						className="h-auto w-[220px]"
 					/>
 				</div>
 
@@ -79,7 +63,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 					<div className="space-y-2.5">
 						<label
 							htmlFor="usuario"
-							className="block text-[20px] font-semibold leading-none tracking-tight text-[#BFD3EA]"
+							className="block text-[17px] font-semibold leading-none tracking-tight text-[#BFD3EA]"
 						>
 							Usuario
 						</label>
@@ -102,7 +86,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 								id="usuario"
 								type="text"
 								placeholder="Ingresa tu usuario"
-								className="h-full w-full bg-transparent text-[22px] text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none"
+								className="h-full w-full bg-transparent text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none"
 								autoComplete="username"
 							/>
 						</div>
@@ -111,7 +95,7 @@ export default function Login({ googleConfigured }: LoginProps) {
 					<div className="space-y-2.5">
 						<label
 							htmlFor="contrasena"
-							className="block text-[20px] font-semibold leading-none tracking-tight text-[#BFD3EA]"
+							className="block text-[17px] font-semibold leading-none tracking-tight text-[#BFD3EA]"
 						>
 							Contraseña
 						</label>
@@ -134,18 +118,23 @@ export default function Login({ googleConfigured }: LoginProps) {
 								id="contrasena"
 								type="password"
 								placeholder="Ingresa tu contraseña"
-								className="h-full w-full bg-transparent text-[22px] text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none"
+								className="h-full w-full bg-transparent text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none"
 								autoComplete="current-password"
 							/>
 						</div>
 					</div>
 
+					{error === "CredentialsSignin" ? (
+						<p className="rounded-[10px] bg-red-500/20 px-4 py-2.5 text-center text-sm font-medium text-red-300">
+							Correo o contraseña incorrectos
+						</p>
+					) : null}
+
 					<button
 						type="submit"
-						className="mt-1 flex h-[58px] w-full items-center justify-center gap-3 rounded-[14px] bg-[#D2D3D5] text-[31px] font-semibold text-[#202226] shadow-[0_7px_16px_rgba(10,25,44,0.2)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
+						className="mt-1 flex h-[52px] w-full items-center justify-center gap-3 rounded-[14px] bg-[#D2D3D5] text-xl font-semibold text-[#202226] shadow-[0_7px_16px_rgba(10,25,44,0.2)] transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BFD3EA]"
 					>
-
-						Iniciar Sesion
+						Iniciar Sesión
 					</button>
 
 					<button
@@ -173,11 +162,6 @@ export default function Login({ googleConfigured }: LoginProps) {
 						</svg>
 						Continuar con Google
 					</button>
-					{!googleConfigured ? (
-						<p className="text-center text-xs font-medium text-[#BFD3EA]">
-							Configura GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en .env.local
-						</p>
-					) : null}
 				</form>
 			</section>
 		</main>

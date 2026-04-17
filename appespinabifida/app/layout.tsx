@@ -28,12 +28,15 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-sky-100">
-        <Topbar />
-        <main className="mx-auto max-w-6xl px-4 py-8 flex-1 w-full">
-          <Providers>{children}</Providers>
-        </main>
+        <Providers>
+          <Topbar />
+          <main className="mx-auto max-w-6xl px-4 py-8 flex-1 w-full">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );
