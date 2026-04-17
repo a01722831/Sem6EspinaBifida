@@ -1,7 +1,9 @@
 "use client";
 import {useState} from "react";
+
 type FilterProps = {
-  sendFilters: Function
+  sendFilters: Function,
+  onCreateClick?: () => void;
 }
 
 export default function Filtros({sendFilters} : FilterProps) {
@@ -21,13 +23,18 @@ export default function Filtros({sendFilters} : FilterProps) {
     sendFilters(Filters);
   }
 
+export default function Filtros({ onCreateClick }: FilterProps) {
   return (
     <aside className="bg-[#003c64] rounded-2xl p-5 flex flex-col gap-4 w-64 shrink-0">
       <button onClick={applyFilters} className="bg-[#F3AD1A] hover:bg-[#F3AD1A]/60 text-black text-sm font-medium py-2 px-4 rounded-md transition-colors">
         Buscar
       </button>
 
-      <button className="bg-navy-800 hover:bg-navy-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors">
+      <button
+        type="button"
+        onClick={onCreateClick}
+        className="bg-navy-800 hover:bg-navy-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+      >
         Agregar asociado
       </button>
 
@@ -59,4 +66,4 @@ export default function Filtros({sendFilters} : FilterProps) {
       </div>
     </aside>
   );
-}
+}}

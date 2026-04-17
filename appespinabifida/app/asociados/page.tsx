@@ -1,9 +1,15 @@
 "use client"
 
+
 import Filtros from "../components/Filtros";
 import ImprimirOrdenButton from "../components/ImprimirOrdenButton";
-import ListaAsociados from "../components/ListaAsociados";
+import ListaAsociados, {
+  initialAsociadosData,
+} from "../components/ListaAsociados";
+import CreateAsociadoModal from "../components/CreateAsociadoModal";
+import type { AsociadoDetalle } from "../components/ModalAsociado";
 import {useState} from "react";
+
 
 interface Filters  {
   id: number|null,
@@ -19,16 +25,32 @@ export default function Asociados() {
     fecha: "",
     estatus: ""
   });
-  return (
-    <main className="flex-1 min-h-full  text-black p-6 pt-2 flex flex-col gap-4">
-      <div className="flex items-center justify-end gap-1">
+  const [asociados, setAsociados] = useState<AsociadoDetalle[]>(
+    initialAsociadosData,
+  );
+  const [createOpen, setCreateOpen] = useState(false);
+ return (
+    <main className="space-y-6 text-slate-900">
+      <div className="flex items-center justify-end">
         <ImprimirOrdenButton />
       </div>
 
-      <div className="flex gap-6 items-stretch">
-        <Filtros sendFilters={setFiltros}/>
-        <ListaAsociados filtros={filtros}/>
+      <div className="flex flex-col items-stretch gap-6 lg:flex-row">
+        <Filtros sendFilters={setFiltros} onCreateClick={() => setCreateOpen(true)}/>
+        <ListaAsociados filtros={filtros} items={asociados}
+          onUpdateAsociado={(index, next) => {
+            setAsociados((prev) =>
+              prev.map((item, itemIndex) => (itemIndex === index ? next : item)),
+            );
+          }}/>
       </div>
+      <CreateAsociadoModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreate={(newAsociado) => {
+          setAsociados((prev) => [newAsociado, ...prev]);
+        }}
+      />
     </main>
   );
 }
