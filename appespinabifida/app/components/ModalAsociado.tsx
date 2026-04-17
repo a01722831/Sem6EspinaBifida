@@ -834,7 +834,7 @@ export default function ModalAsociado({
                   <Field label="Seguro">{isEditMode ? <Input value={d.padreSeguro} onChange={(e) => updateDraft("padreSeguro", e.target.value)} /> : d.padreSeguro}</Field>
                 </div>
                 <Field label="Seguro">{d.padreSeguro}</Field>
-              </div>
+              
 
                 <div className="min-w-0 space-y-5">
                   <Divider label="Historial ambos" />
@@ -898,7 +898,7 @@ export default function ModalAsociado({
                   </div>
                 </div>
               </div>
-            </div>
+            
           )}
 
           {activeTab === "Credencial" && (

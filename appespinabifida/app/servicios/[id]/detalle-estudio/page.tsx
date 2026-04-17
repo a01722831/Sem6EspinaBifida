@@ -7,8 +7,8 @@ export default async function DetalleEstudioPage({
 }) {
   await params;
 
-  const res = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/obtenerEstudioPorId?id=${(await params).id}`);
-  const data = (await res.json()).items[0];
+  const res = await fetch(`${process.env.BASE_URL}/api/servicios/obtener/estudios/porId?id=${(await params).id}`);
+  const data = (await res.json());
 
   return (
     <div className="bg-[#B9E5FB] min-h-screen flex flex-col font-sans">

@@ -1,12 +1,9 @@
 "use client";
 
+import { AsociadoDetalle } from "@/components/ModalAsociado";
 import { useState } from "react";
-
-const ASOCIADOS_MOCK = [
-  { id: "0041", nombre: "Martínez Reyes, Juan Carlos", edad: 34, genero: "Masculino", telCel: "81-9876-5432", telEmergencia: "81-1234-5678" },
-  { id: "0042", nombre: "López Hernández, Sofía",      edad: 28, genero: "Femenino",  telCel: "81-5555-1234", telEmergencia: "" },
-  { id: "0043", nombre: "García Pérez, Miguel Ángel", edad: 41, genero: "Masculino", telCel: "81-4444-5555", telEmergencia: "81-2222-3333" },
-];
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const LABORATORIOS_MOCK = [
   { id: "L01", nombre: "Lab. Médico Cerrus" },
@@ -17,13 +14,29 @@ const LABORATORIOS_MOCK = [
 ];
 
 function normalizar(s: string) {
-  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+type consulta = {
+  folio: string
+  tipo: string
+  fecha: string
+}
+
+type tipoEstudio = {
+  id_tipo_estudio: number,
+  nombre: string,
+  descripcion: string,
+  tiempo_preparacion: string
 }
 
 export default function NuevoEstudioPage() {
+
+  const router = useRouter();
+
   // Asociado search
   const [query, setQuery] = useState("");
-  const [seleccionado, setSeleccionado] = useState<typeof ASOCIADOS_MOCK[number] | null>(null);
+  const [seleccionado, setSeleccionado] = useState<any | null>(null);
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
 
   // Datos del estudio
@@ -42,28 +55,91 @@ export default function NuevoEstudioPage() {
   const [folioQuery, setFolioQuery] = useState("");
   const [folioDropdownAbierto, setFolioDropdownAbierto] = useState(false);
 
-  const CONSULTAS_MOCK = [
-    { folio: "CON-2026-001", tipo: "Consulta general",      fecha: "2026-01-10" },
-    { folio: "CON-2026-005", tipo: "Consulta de seguimiento", fecha: "2026-02-03" },
-    { folio: "CON-2026-012", tipo: "Consulta de urgencia",  fecha: "2026-03-21" },
-    { folio: "CON-2026-018", tipo: "Consulta general",      fecha: "2026-04-08" },
-  ];
+  const [ASOCIADOS, setASOCIADOS] = useState<[]>([])
+  const [CONSULTAS, setCONSULTAS] = useState<consulta[]>([])
+  const [TIPOESTUDIO, setTIPOESTUDIO] = useState<tipoEstudio[]>([])
 
-  const folioSugerencias = CONSULTAS_MOCK.filter((c) =>
-    normalizar(c.folio).includes(normalizar(folioQuery))
+  useEffect(()=>{
+    const data = async () => {
+      const res = await fetch("/api/asociados/lista_asociados/estudio");
+      if (res.ok){
+        const response = await res.json();
+        if (response.status == "ok"){
+          setASOCIADOS(response.data);
+        }
+        else{
+          alert("Error al conectarse a la base de datos");
+          setASOCIADOS([]);
+        }
+      }
+      else{
+        alert("Error al intentar cargar a los asociados, intentelo de nuevo mas adelante");
+        setASOCIADOS([]);
+      }
+    }
+    data();
+  },[]);
+
+  useEffect(()=>{
+    const data = async () =>{
+      const res = await fetch("/api/servicios/obtener/consultas/mini");
+      if (res.ok){
+        const data = await res.json();
+        if (data.status == "ok"){
+          setCONSULTAS(data.data);
+        }
+        else{
+          alert("Error al conectar con la base de datos");
+          setCONSULTAS([]);
+        }
+        
+      }
+      else{
+        alert("No se pudo obtener las consultas, intente nuevamente mas tarde");
+        setCONSULTAS([]);
+      }
+    }
+    data();
+  },[])
+
+  useEffect(()=>{
+    const data = async () =>{
+      const res = await fetch("/api/servicios/obtener/estudios/tipos");
+      if (res.ok){
+        const data = await res.json();
+        if (data.status == "ok"){
+          setTIPOESTUDIO(data.data);
+        }
+        else{
+          alert("Error al conectar con la base de datos");
+          setTIPOESTUDIO([]);
+        }
+        
+      }
+      else{
+        alert("No se pudo obtener los tipos de estudio, intente nuevamente mas tarde");
+        setTIPOESTUDIO([]);
+      }
+    }
+    data();
+  },[])
+
+  const folioSugerencias = CONSULTAS.filter((c: any) => {
+      return normalizar(c.folio).includes(normalizar(folioQuery))
+    }
   );
 
   // Notas y resultados
   const [nota, setNota] = useState("");
   const [resultados, setResultados] = useState("");
 
-  const sugerencias = ASOCIADOS_MOCK.filter(
-    (a) =>
+  const sugerencias = ASOCIADOS.filter(
+    (a:any) =>
       normalizar(a.nombre).includes(normalizar(query)) ||
-      a.id.includes(query)
+      String(a.id).includes(query)
   );
 
-  function handleSelect(asociado: { id: string; nombre: string }) {
+  function handleSelect(asociado: any) {
     setSeleccionado(asociado);
     setQuery(`${asociado.nombre} · #${asociado.id}`);
     setDropdownAbierto(false);
@@ -89,19 +165,68 @@ export default function NuevoEstudioPage() {
     setMontoDisplay(montoRaw);
   }
 
-  function handleGuardar() {
-    console.log({
-      asociado: seleccionado,
-      estudio,
+  async function handleGuardar() {
+    
+    if (!seleccionado) {
+      alert("Debes seleccionar un asociado");
+      return;
+    }
+
+    if (!estudio) {
+      alert("Debes seleccionar un tipo de estudio");
+      return;
+    }
+
+    if (!laboratorioId) {
+      alert("Debes seleccionar un laboratorio");
+      return;
+    }
+
+    if (!fecha) {
+      alert("Debes seleccionar una fecha");
+      return;
+    }
+
+    if (folioConsulta == ""){
+      alert("Debes seleccionar una consulta");
+      return;
+    }
+
+    const estudio_data = {
+      id_asociado: seleccionado.id,
+      id_medico: null,
+      id_tipo_estudio: Number(estudio),
+      id_consulta: Number(folioConsulta.replace("CON-","")),
       laboratorio: laboratorioId,
-      fecha,
-      estatus,
-      monto: montoRaw,
-      yaAporto,
-      folioConsulta,
-      nota,
-      resultados,
-    });
+      aportacion: montoRaw,
+      ya_aporto: (yaAporto) ? 1 : 0,
+      fecha_cita: fecha,
+      estatus: estatus,
+      resultados: resultados
+    }
+    const body = {
+      tipo: 1,
+      data: estudio_data
+    }
+    const res = await fetch ("/api/servicios/agregar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+    })
+    if (res.ok){
+      if (await res.json() == "Success"){
+        alert("Estudio agregado correctamente");
+        router.push("/servicios")
+      }
+      else{
+        alert("No se pudo agregar el estudio, intente nuevamente");
+      }
+    }
+    else{
+      alert("No se puede conectar con el servicio de agregado de estudios, intente nuevamente mas tarde")
+    }
   }
 
   return (
@@ -134,7 +259,7 @@ export default function NuevoEstudioPage() {
             {dropdownAbierto && query.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-20 overflow-hidden">
                 {sugerencias.length > 0 ? (
-                  sugerencias.map((a) => (
+                  sugerencias.map((a: any) => (
                     <button
                       key={a.id}
                       onMouseDown={() => handleSelect(a)}
@@ -197,13 +322,13 @@ export default function NuevoEstudioPage() {
 
             <div className="flex flex-col gap-1">
               <label className="text-[12px] text-[#546E7A]">Estudio</label>
-              <input
-                type="text"
-                value={estudio}
-                onChange={(e) => setEstudio(e.target.value)}
-                placeholder="Ej. Urodinámica, Laboratorio general..."
-                className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64]"
-              />
+              <select value = {estudio} onChange={(e) => setEstudio(e.target.value)} className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer">
+                <option value="">Seleccionar estudio...</option>
+                {TIPOESTUDIO.map((tipo: tipoEstudio) => (
+                  <option key={`TE-${tipo.id_tipo_estudio}`} value={tipo.id_tipo_estudio}>{tipo.nombre}</option>
+                )
+                )}
+              </select>
             </div>
 
             <div className="flex flex-col gap-1">
@@ -311,7 +436,7 @@ export default function NuevoEstudioPage() {
             {folioDropdownAbierto && folioQuery.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-20 overflow-hidden">
                 {folioSugerencias.length > 0 ? (
-                  folioSugerencias.map((c) => (
+                  folioSugerencias.map((c:any) => (
                     <button
                       key={c.folio}
                       onMouseDown={() => {
@@ -389,7 +514,7 @@ export default function NuevoEstudioPage() {
         >
           Guardar estudio
         </button>
-        <button className="px-4 py-2 rounded-lg text-[13px] font-medium border border-white/20 bg-transparent text-white cursor-pointer hover:bg-white/10">
+        <button onClick={() => {router.push("/servicios")}} className="px-4 py-2 rounded-lg text-[13px] font-medium border border-white/20 bg-transparent text-white cursor-pointer hover:bg-white/10">
           Cancelar
         </button>
       </div>
