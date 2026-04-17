@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { getSession } from "next-auth/react";
 
 export default function RecibosPage() {
-	const [session, setSession] = useState<any|null>(null);
+	let session;
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		getSession().then((session) => {
-			setSession(session);
+			session = session;
 			setLoading(false);
 		});
 	}, []);
