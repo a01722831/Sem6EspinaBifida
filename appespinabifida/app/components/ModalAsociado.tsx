@@ -1,9 +1,13 @@
 "use client";
 
+
+import { useMemo, useState } from "react";
+import ImprimirCredencialButton from "./ImprimirCredencialButton";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "./ui/Input";
 import { Select } from "./ui/Select";
 import { Textarea } from "./ui/Textarea";
+
 
 type Estatus = "Activo" | "Inactivo" | "Pendiente";
 type Sexo = "Masculino" | "Femenino";
@@ -890,8 +894,9 @@ export default function ModalAsociado({
           )}
 
           {activeTab === "Credencial" && (
-            <div className="flex items-center justify-center h-40">
-              <p className="text-gray-400 text-base">Sin información registrada</p>
+            <div className="flex flex-col gap-6">
+              
+              <ImprimirCredencialButton asociado={asociado} />
             </div>
           )}
 
