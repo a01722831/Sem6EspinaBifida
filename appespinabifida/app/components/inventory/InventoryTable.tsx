@@ -65,8 +65,8 @@ export function InventoryTable({
                 </td>
                 <td className="px-4 py-5 text-sm text-slate-700">{it.quantity}</td>
                 <td className="px-4 py-5 text-sm">
-                  <Badge variant={it.status === 'in_stock' ? 'success' : 'neutral'}>
-                    {it.status === 'in_stock' ? 'En stock' : 'Agotado'}
+                  <Badge variant={it.status === 'in_stock' ? 'success' : (it.status==='low_stock') ? 'warning':'failed'}>
+                    {it.status === 'in_stock' ? 'En stock' : it.status==='low_stock' ? 'Limitado' : 'Agotado'}
                   </Badge>
                 </td>
               </tr>

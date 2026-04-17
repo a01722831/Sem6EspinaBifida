@@ -7,6 +7,7 @@ type estudio_data = {
     id_asociado: number,
     id_medico: number,
     id_tipo_estudio: number,
+    id_consulta: number,
     laboratorio: string,
     aportacion: number,
     ya_aporto: 1 | 0,
@@ -33,9 +34,7 @@ type consulta_data = {
 export async function POST(request: Request){
 
     const body: agregar_servicio_data = await request.json();
-
     const url = (body.tipo == 0)? "https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/agregarConsulta" : "https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/agregarEstudio";
-    console.log(url);
     const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -43,7 +42,6 @@ export async function POST(request: Request){
         },
         body: JSON.stringify(body.data),
     });
-    console.log(res);
     const insert_response = (res.ok) ? "Success" : "Failed";
     return Response.json(insert_response);
 }

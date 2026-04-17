@@ -1,4 +1,4 @@
-export type InventoryStatus = 'in_stock' | 'out_of_stock'
+export type InventoryStatus = 'in_stock' | 'out_of_stock' | 'low_stock'
 
 export type InventoryItem = {
   id: number

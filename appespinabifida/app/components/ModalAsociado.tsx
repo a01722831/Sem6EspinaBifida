@@ -886,7 +886,7 @@ export default function ModalAsociado({
                   </div>
                 </div>
               </div>
-            </div>
+            
           )}
 
           {activeTab === "Credencial" && (

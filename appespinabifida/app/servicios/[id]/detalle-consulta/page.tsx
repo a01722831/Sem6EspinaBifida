@@ -1,6 +1,3 @@
-// import * as obtenerConsultas from "@/app/api/servicios/obtener/consultas/route";
-// import ListItemEstudio from "@/app/components/ListItemEstudio";
-
 import ListItemEstudio from "@/components/ListItemEstudio";
 
 export default async function DetalleConsultaPage({
@@ -10,11 +7,11 @@ export default async function DetalleConsultaPage({
 }) {
   await params;
 
-  const res = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/obtenerConsultaPorId?id=${(await params).id}`);
-  const data = (await res.json()).items[0];
+  const res = await fetch(`${process.env.BASE_URL}/api/servicios/obtener/consultas/porId?id=${(await params).id}`);
+  const data = await res.json();
 
-  const resEstudios = await fetch(`https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/services/estudiosConsulta?id=${(await params).id}`);
-  const listaEstudios = (await resEstudios.json()).items;
+  const resEstudios = await fetch(`${process.env.BASE_URL}/api/servicios/obtener/estudios/porConsulta?id=${(await params).id}`);
+  const listaEstudios = await resEstudios.json();
 
   return (
     <div className="bg-[#B9E5FB] min-h-screen flex flex-col font-sans">
