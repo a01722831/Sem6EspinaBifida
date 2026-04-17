@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getSession } from "next-auth/react";
 
 export default function RecibosPage() {
-	const [session, setSession] = useState(null);
+	const [session, setSession] = useState<any|null>(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -214,7 +214,7 @@ export default function RecibosPage() {
 									))}
 									<tr className="bg-gray-50">
 										<td
-											colSpan="5"
+											
 											className="px-4 py-4 text-right text-sm font-bold text-gray-900"
 										>
 											TOTAL:
