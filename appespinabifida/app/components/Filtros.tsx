@@ -1,68 +1,91 @@
 "use client";
-import {useState} from "react";
+
+import { useState } from "react";
+import { Plus, Search } from "lucide-react";
+
+import { Input } from "./ui/Input";
+import { Select } from "./ui/Select";
+import { Button } from "./ui/Button";
 
 type FilterProps = {
   sendFilters: Function,
   onCreateClick?: () => void;
 }
 
-export default function Filtros({sendFilters, onCreateClick} : FilterProps) {
-
+export default function Filtros({ sendFilters, onCreateClick }: FilterProps) {
   const [id, setId] = useState<number | null>(null);
-  const [nombre, setNombre] = useState<String>("");
-  const [fecha, setFecha] = useState<String>("");
-  const [estatus, setEstatus] = useState<String>("");
+  const [nombre, setNombre] = useState<string>("");
+  const [fecha, setFecha] = useState<string>("");
+  const [estatus, setEstatus] = useState<string>("");
 
-  function applyFilters(){
-    const Filters = {
-      id: id,
-      nombre: nombre,
-      fecha: fecha,
-      estatus: estatus
-    }
-    sendFilters(Filters);
+  function applyFilters() {
+    sendFilters({ id, nombre, fecha, estatus });
   }
 
   return (
-    <aside className="bg-[#003c64] rounded-2xl p-5 flex flex-col gap-4 w-64 shrink-0">
-      <button onClick={applyFilters} className="bg-[#F3AD1A] hover:bg-[#F3AD1A]/60 text-black text-sm font-medium py-2 px-4 rounded-md transition-colors">
-        Buscar
-      </button>
+    <div className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-slate-200/70">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-4 items-start">
+        {/* ID */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            type="number"
+            placeholder="ID"
+            onChange={(e) => setId(Number(e.target.value))}
+            aria-label="Buscar por ID"
+            className="pl-9"
+          />
+        </div>
 
-      <button
-        type="button"
-        onClick={onCreateClick}
-        className="bg-navy-800 hover:bg-navy-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
-      >
-        Agregar asociado
-      </button>
+        {/* Nombre */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Nombre"
+            onChange={(e) => setNombre(e.target.value)}
+            aria-label="Buscar por nombre"
+            className="pl-9"
+          />
+        </div>
 
-      <div className="flex flex-col gap-3 mt-2">
-        <input
-          onChange={(e) => setId(Number(e.target.value))}
-          type="number"
-          placeholder="ID"
-          className="rounded-md border border-white/30 bg-white/90 text-gray-800 placeholder-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steel-400"
-        />
-        <input
-          onChange={(e) => setNombre(e.target.value)}
-          type="text"
-          placeholder="Nombre"
-          className="rounded-md border border-white/30 bg-white/90 text-gray-800 placeholder-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steel-400"
-        />
-        <input
-          onChange={(e) => setFecha(e.target.value)}
-          type="date"
-          placeholder="Fecha de alta"
-          className="rounded-md border border-white/30 bg-white/90 text-gray-800 placeholder-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steel-400"
-        />
-        <select onChange={(e) => setEstatus(e.target.value)} className="rounded-md border border-white/30 bg-white/90 text-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steel-400">
-          <option value="">Estatus</option>
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-          <option value="Pendiente">Pendiente</option>
-        </select>
+        {/* Fecha de alta */}
+        <div>
+          <Input
+            type="date"
+            onChange={(e) => setFecha(e.target.value)}
+            aria-label="Filtrar por fecha de alta"
+          />
+          <span className="mt-1 block text-xs text-slate-500">Fecha de alta</span>
+        </div>
+
+        {/* Estatus */}
+        <div className="relative">
+          <Select
+            onChange={(e) => setEstatus(e.target.value)}
+            aria-label="Filtrar por estatus"
+          >
+            <option value="">Todos los estatus</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="Pendiente">Pendiente</option>
+          </Select>
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▼</span>
+        </div>
       </div>
-    </aside>
+
+      <div className="mt-3 flex items-center justify-between">
+        <Button
+          variant="secondary"
+          leftIcon={<Plus className="h-4 w-4" />}
+          onClick={onCreateClick}
+        >
+          Agregar asociado
+        </Button>
+        <Button variant="secondary" onClick={applyFilters}>
+          Buscar
+        </Button>
+      </div>
+    </div>
   );
 }

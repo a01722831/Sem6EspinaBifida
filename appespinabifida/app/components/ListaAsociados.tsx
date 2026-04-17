@@ -244,11 +244,13 @@ export default function ListaAsociados({
 
   return (
     <>
-      <ListaTabla
-        headers={HEADERS}
-        rows={rows}
-        onRowClick={setSelectedIndex}
-      />
+      <div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70">
+        <ListaTabla
+          headers={HEADERS}
+          rows={rows}
+          onRowClick={setSelectedIndex}
+        />
+      </div>
       {selectedAsociado != null && selectedIndex != null && (
         <ModalAsociado
           asociado={selectedAsociado}
