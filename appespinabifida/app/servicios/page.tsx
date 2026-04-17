@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Search, Stethoscope, FlaskConical } from 'lucide-react'
 
@@ -8,6 +8,8 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Select } from '../components/ui/Select'
 import { Modal } from '../components/ui/Modal'
+import { NuevaConsultaModal } from '../components/NuevaConsultaModal'
+import { NuevoEstudioModal } from '../components/NuevoEstudioModal'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -154,12 +156,14 @@ const NUEVO_MODAL_TITLE_ID = 'nuevo-servicio-modal-title'
 function NuevoServicioModal({
   open,
   onClose,
+  onSelectConsulta,
+  onSelectEstudio,
 }: {
   open: boolean
   onClose: () => void
+  onSelectConsulta: () => void
+  onSelectEstudio: () => void
 }) {
-  const router = useRouter()
-
   return (
     <Modal
       open={open}
@@ -174,7 +178,7 @@ function NuevoServicioModal({
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
-            onClick={() => router.push('/servicios/consultas/nueva')}
+            onClick={() => { onClose(); onSelectConsulta() }}
             className="flex flex-col items-center gap-3 rounded-xl border-2 border-sky-200 bg-sky-50 p-6 text-center transition hover:border-sky-400 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-200">
@@ -184,7 +188,7 @@ function NuevoServicioModal({
           </button>
           <button
             type="button"
-            onClick={() => router.push('/servicios/estudios/nuevo')}
+            onClick={() => { onClose(); onSelectEstudio() }}
             className="flex flex-col items-center gap-3 rounded-xl border-2 border-violet-200 bg-violet-50 p-6 text-center transition hover:border-violet-400 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-200">
@@ -307,6 +311,11 @@ export default function ServiciosPage() {
   const [fechaFin, setFechaFin] = useState('')
   const [estatus, setEstatus] = useState('Todos')
   const [nuevoServicioOpen, setNuevoServicioOpen] = useState(false)
+  const [nuevaConsultaOpen, setNuevaConsultaOpen] = useState(false)
+  const [nuevoEstudioOpen, setNuevoEstudioOpen] = useState(false)
+
+  const closeNuevaConsulta = useCallback(() => setNuevaConsultaOpen(false), [])
+  const closeNuevoEstudio = useCallback(() => setNuevoEstudioOpen(false), [])
 
   const hasActiveFilters =
     folio !== '' ||
@@ -511,6 +520,16 @@ export default function ServiciosPage() {
       <NuevoServicioModal
         open={nuevoServicioOpen}
         onClose={() => setNuevoServicioOpen(false)}
+        onSelectConsulta={() => setNuevaConsultaOpen(true)}
+        onSelectEstudio={() => setNuevoEstudioOpen(true)}
+      />
+      <NuevaConsultaModal
+        open={nuevaConsultaOpen}
+        onClose={closeNuevaConsulta}
+      />
+      <NuevoEstudioModal
+        open={nuevoEstudioOpen}
+        onClose={closeNuevoEstudio}
       />
     </div>
   )
