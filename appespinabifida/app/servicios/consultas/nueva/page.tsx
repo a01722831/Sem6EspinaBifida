@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useEffect } from "react";
-
+import { useRouter} from "next/navigation";
 
 function validarHora(valor: string): boolean {
   if (!valor) return true;
@@ -15,12 +15,14 @@ function validarHora(valor: string): boolean {
 
 export default function NuevaConsultaPage() {
 
+  const router = useRouter();
+
   const [data, setData] = useState<any[]>([]);
   const [medicos, setMedicos] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("/api/asociados/lista_asociados");
+      const res = await fetch("/api/asociados/lista_asociados/mini");
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -48,6 +50,7 @@ export default function NuevaConsultaPage() {
   const [horaTocada, setHoraTocada] = useState(false);
   const [tipoConsulta, setTipoConsulta] = useState("");
   const [fecha, setFecha] = useState("");
+  const [medicoSeleccionado, setMedicoSeleccionado] = useState(0);
 
   function to24Hour(hora: string, periodo: string) {
     let [h, m] = hora.split(":").map(Number);
@@ -61,6 +64,21 @@ export default function NuevaConsultaPage() {
   const horaInvalida = horaTocada && !validarHora(hora);
 
   async function agregarConsulta(){
+    const data = {
+        tipo: 0,
+        data: {
+        id_asociado: Number(seleccionado?.id),
+        id_medico: medicoSeleccionado,
+        id_recibo: null,
+        tipo_consulta: tipoConsulta,
+        motivo: null,
+        diagnostico: null,
+        tratamiento: null,
+        aportacion: monto,
+        ya_aporto: 0,
+        estatus: abierto,
+        fecha_cita: String(fecha + " " + to24Hour(hora, periodo))
+        }}
     const res = await fetch("/api/servicios/agregar",{
       method: "POST",
       headers: {
@@ -70,7 +88,7 @@ export default function NuevaConsultaPage() {
         tipo: 0,
         data: {
         id_asociado: Number(seleccionado?.id),
-        id_medico: 1,
+        id_medico: medicoSeleccionado,
         id_recibo: null,
         tipo_consulta: tipoConsulta,
         motivo: null,
@@ -83,6 +101,13 @@ export default function NuevaConsultaPage() {
         }
       }),
     })
+    if (await res.json() == "Success"){
+      alert("Servicio creado correctamente");
+      router.push("/servicios")
+    }
+    else{
+      alert("Hubo un error, intente nuevamente");
+    }
     console.log(res);
   }
 
@@ -184,15 +209,14 @@ export default function NuevaConsultaPage() {
                   setTipoConsulta(e.target.value);
                 }}>
                   <option value="">Seleccionar tipo...</option>
-                  <option value="general">Consulta general</option>
+                  <option value="primera">Consulta general</option>
                   <option value="seguimiento">Consulta de seguimiento</option>
-                  <option value="urgencia">Consulta de urgencia</option>
                 </select>
               </div>
 
               <div className="flex flex-col gap-1 col-span-2">
                 <label className="text-[12px] text-[#546E7A]">Médico responsable</label>
-                <select className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer">
+                <select className="bg-[#E9E9E9] border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 outline-none focus:border-[#003C64] focus:ring-1 focus:ring-[#003C64] cursor-pointer" onChange={(e)=>{setMedicoSeleccionado(Number(e.target.value))}}>
                   <option id="sinMedico" value="">Selecciona medico responsable</option>
                   {medicos.map((medico: any) =>(
                     <option key={"medico" + medico.nombre +String(medico.id_medico)} value={medico.id_medico}>Dr(a) {medico.nombre}</option>
@@ -273,7 +297,7 @@ export default function NuevaConsultaPage() {
         <button className="px-4 py-2 rounded-lg text-[13px] font-medium bg-[#003C64] text-white border border-white/50 cursor-pointer hover:bg-[#002847]" onClick={agregarConsulta}>
           Guardar consulta
         </button>
-        <button className="px-4 py-2 rounded-lg text-[13px] font-medium border border-white/20 bg-transparent text-white cursor-pointer hover:bg-white/10">
+        <button onClick={() => {router.push("/servicios")}} className="px-4 py-2 rounded-lg text-[13px] font-medium border border-white/20 bg-transparent text-white cursor-pointer hover:bg-white/10">
           Cancelar
         </button>
       </div>

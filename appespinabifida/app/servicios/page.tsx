@@ -184,7 +184,7 @@ function NuevoServicioModal({
           </button>
           <button
             type="button"
-            onClick={() => router.push('/servicios/estudios/nueva')}
+            onClick={() => router.push('/servicios/estudios/nuevo')}
             className="flex flex-col items-center gap-3 rounded-xl border-2 border-violet-200 bg-violet-50 p-6 text-center transition hover:border-violet-400 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-200">

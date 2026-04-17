@@ -41,7 +41,6 @@ export async function GET(){
     const listaConsultas: consulta_data[] = result;
     const listaEstudios: estudio_data[] = result2;
     const servicios: (consulta_data | estudio_data)[] = [...listaConsultas, ...listaEstudios];
-
     servicios.sort((a,b) => {
         let a_val;
         let b_val;
@@ -59,7 +58,6 @@ export async function GET(){
         }
         return a_val - b_val;
     })
-
     const response = {servicios};
     return Response.json(response);
 }

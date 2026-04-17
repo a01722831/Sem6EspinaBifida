@@ -20,7 +20,7 @@ export default function Asociados() {
     estatus: ""
   });
   return (
-    <main className="flex-1 min-h-full  text-black p-6 pt-50 flex flex-col gap-4">
+    <main className="flex-1 min-h-full  text-black p-6 pt-2 flex flex-col gap-4">
       <div className="flex items-center justify-end gap-1">
         <ImprimirOrdenButton />
       </div>
