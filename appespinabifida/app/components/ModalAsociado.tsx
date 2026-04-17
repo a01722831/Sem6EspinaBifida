@@ -1,7 +1,6 @@
 "use client";
 
 
-import { useMemo, useState } from "react";
 import ImprimirCredencialButton from "./ImprimirCredencialButton";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "./ui/Input";
@@ -911,7 +910,7 @@ export default function ModalAsociado({
                   </div>
                 </div>
               </div>
-            
+            </div>
           )}
 
           {activeTab === "Credencial" && (

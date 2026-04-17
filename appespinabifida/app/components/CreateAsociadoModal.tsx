@@ -183,6 +183,7 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
       const data = await res.json();
       if (data.status = "ok"){
         alert("Se creo el asociado correctamente");
+        window.location.reload();
       }
       else{
         alert(data.reason);
