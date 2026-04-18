@@ -1,0 +1,499 @@
+{
+    "connectionName": "EspinaBifidaBD",
+    "layout": {
+        "items": [
+            {
+                "type": "TABLE",
+                "name": "PAGO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 9646.651260375977,
+                    "y": 2762,
+                    "width": 349.9455871582031,
+                    "height": 248
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "ASOCIADO_PADECIMIENTO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8268.398071289062,
+                    "y": 2405,
+                    "width": 484.0948791503906,
+                    "height": 198
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "RECIBO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 9646.651260375977,
+                    "y": 2161,
+                    "width": 427.3031921386719,
+                    "height": 473
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "HISTORIAL_MEDICO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8268.398071289062,
+                    "y": 1438,
+                    "width": 446.0641174316406,
+                    "height": 373
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "DIRECCION",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8785.797485351562,
+                    "y": 1866,
+                    "width": 452.3756408691406,
+                    "height": 196
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "CREDENCIAL",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8272.333709716797,
+                    "y": 1107,
+                    "width": 427.3031921386719,
+                    "height": 273
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "ESTUDIO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 9637.270797729492,
+                    "y": 1613,
+                    "width": 446.0641174316406,
+                    "height": 473
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "MOVIMIENTO_INVENTARIO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10896.775177001953,
+                    "y": 2466,
+                    "width": 474.9774169921875,
+                    "height": 323
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "USUARIOS",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 7330,
+                    "y": 1292,
+                    "width": 452.3756408691406,
+                    "height": 321
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "DETALLE_RECIBO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10232.107025146484,
+                    "y": 2087,
+                    "width": 364.39166259765625,
+                    "height": 298
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "COMODATO_DETALLE",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10910.898544311523,
+                    "y": 1562,
+                    "width": 446.7306823730469,
+                    "height": 273
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "CONSULTA",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 9646.651260375977,
+                    "y": 1107,
+                    "width": 427.3031921386719,
+                    "height": 448
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "TIPO_ESTUDIO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10165.891082763672,
+                    "y": 1613,
+                    "width": 462.8175506591797,
+                    "height": 171
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "PADECIMIENTOS",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8826.303192138672,
+                    "y": 2423,
+                    "width": 453.4171447753906,
+                    "height": 146
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "ARTICULO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10897.667350769043,
+                    "y": 2014,
+                    "width": 473.1930694580078,
+                    "height": 346
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "PADRES",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8268.398071289062,
+                    "y": 2662,
+                    "width": 532.0787200927734,
+                    "height": 398
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "ASOCIADO_DIRECCION",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8268.398071289062,
+                    "y": 1864,
+                    "width": 435.1744689941406,
+                    "height": 198
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "CONCEPTO_RECIBO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10165,
+                    "y": 2486.5,
+                    "width": 452.3756408691406,
+                    "height": 146
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "MEDICO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10165,
+                    "y": 1107,
+                    "width": 464.59971618652344,
+                    "height": 271
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "SOLICITUD",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 7342.890335083008,
+                    "y": 2200,
+                    "width": 426.594970703125,
+                    "height": 223
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "COMODATO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10901,
+                    "y": 1153,
+                    "width": 466.52777099609375,
+                    "height": 273
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "HISTORIAL_EMBARAZO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8879.875732421875,
+                    "y": 2662,
+                    "width": 455.1311950683594,
+                    "height": 348
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "TELEFONO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 8268.398071289062,
+                    "y": 2112,
+                    "width": 582.5593414306641,
+                    "height": 248
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "ASOCIADO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 7330,
+                    "y": 1689,
+                    "width": 452.3756408691406,
+                    "height": 423
+                }
+            },
+            {
+                "type": "TABLE",
+                "name": "METODO_PAGO",
+                "schema": "ADMIN",
+                "bounds": {
+                    "x": 10145,
+                    "y": 2826,
+                    "width": 427.3031921386719,
+                    "height": 121
+                }
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_PAGO_RECIBO",
+                "sourceID": "ADMIN.RECIBO",
+                "targetID": "ADMIN.PAGO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_PAGO_METODO",
+                "sourceID": "ADMIN.METODO_PAGO",
+                "targetID": "ADMIN.PAGO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ASOPAD_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.ASOCIADO_PADECIMIENTO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ASOPAD_PADECIMIENTO",
+                "sourceID": "ADMIN.PADECIMIENTOS",
+                "targetID": "ADMIN.ASOCIADO_PADECIMIENTO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_RECIBO_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.RECIBO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_RECIBO_USUARIO",
+                "sourceID": "ADMIN.USUARIOS",
+                "targetID": "ADMIN.RECIBO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_HISTMED_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.HISTORIAL_MEDICO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_CREDENCIAL_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.CREDENCIAL",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ESTUDIO_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.ESTUDIO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ESTUDIO_MEDICO",
+                "sourceID": "ADMIN.MEDICO",
+                "targetID": "ADMIN.ESTUDIO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ESTUDIO_TIPO_ESTUDIO",
+                "sourceID": "ADMIN.TIPO_ESTUDIO",
+                "targetID": "ADMIN.ESTUDIO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ESTUDIO_CONSULTA",
+                "sourceID": "ADMIN.CONSULTA",
+                "targetID": "ADMIN.ESTUDIO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_MOVINV_ARTICULO",
+                "sourceID": "ADMIN.ARTICULO",
+                "targetID": "ADMIN.MOVIMIENTO_INVENTARIO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_MOVINV_USUARIO",
+                "sourceID": "ADMIN.USUARIOS",
+                "targetID": "ADMIN.MOVIMIENTO_INVENTARIO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_MOVINV_RECIBO",
+                "sourceID": "ADMIN.RECIBO",
+                "targetID": "ADMIN.MOVIMIENTO_INVENTARIO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_DETRECIBO_RECIBO",
+                "sourceID": "ADMIN.RECIBO",
+                "targetID": "ADMIN.DETALLE_RECIBO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_DETRECIBO_ARTICULO",
+                "sourceID": "ADMIN.ARTICULO",
+                "targetID": "ADMIN.DETALLE_RECIBO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_DETRECIBO_CONCEPTO",
+                "sourceID": "ADMIN.CONCEPTO_RECIBO",
+                "targetID": "ADMIN.DETALLE_RECIBO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_COMODET_COMODATO",
+                "sourceID": "ADMIN.COMODATO",
+                "targetID": "ADMIN.COMODATO_DETALLE",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_COMODET_ARTICULO",
+                "sourceID": "ADMIN.ARTICULO",
+                "targetID": "ADMIN.COMODATO_DETALLE",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_CONSULTA_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.CONSULTA",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_CONSULTA_MEDICO",
+                "sourceID": "ADMIN.MEDICO",
+                "targetID": "ADMIN.CONSULTA",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_CONSULTA_RECIBO",
+                "sourceID": "ADMIN.RECIBO",
+                "targetID": "ADMIN.CONSULTA",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_PADRES_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.PADRES",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ASODIR_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.ASOCIADO_DIRECCION",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ASODIR_DIRECCION",
+                "sourceID": "ADMIN.DIRECCION",
+                "targetID": "ADMIN.ASOCIADO_DIRECCION",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_SOLICITUD_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.SOLICITUD",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_COMODATO_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.COMODATO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_HISTEMB_PADRE",
+                "sourceID": "ADMIN.PADRES",
+                "targetID": "ADMIN.HISTORIAL_EMBARAZO",
+                "style": "dash"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_TELEFONO_ASOCIADO",
+                "sourceID": "ADMIN.ASOCIADO",
+                "targetID": "ADMIN.TELEFONO",
+                "style": "solid"
+            },
+            {
+                "type": "RELATION",
+                "name": "FK_ASOCIADO_CREDENCIAL",
+                "sourceID": "ADMIN.CREDENCIAL",
+                "targetID": "ADMIN.ASOCIADO",
+                "style": "dash"
+            }
+        ]
+    }
+}
