@@ -34,6 +34,9 @@ export default async function DetalleEstudioPage({
   const res = await fetch(
     `${process.env.BASE_URL}/api/servicios/obtener/estudios/porId?id=${id}`
   );
+  if (!res.ok) {
+    throw new Error(`Estudio no encontrado (id=${id})`);
+  }
   const data = await res.json();
 
   function parseFechaHora(isoString: String) {
