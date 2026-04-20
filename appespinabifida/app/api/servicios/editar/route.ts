@@ -38,7 +38,8 @@ export async function PUT(request: Request){
     const res = await fetch(url, {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
         },
         body: JSON.stringify(body.data),
     });

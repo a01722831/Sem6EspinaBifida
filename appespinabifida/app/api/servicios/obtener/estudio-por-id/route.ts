@@ -17,6 +17,11 @@ export async function GET(request: Request) {
   try {
     const response = await fetch(`${ORDS_BASE_URL}?id=${encodeURIComponent(id)}`, {
       cache: "no-store",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
+      }
     });
 
     if (!response.ok) {

@@ -70,7 +70,8 @@ export async function POST(request: Request){
     const res = await fetch("https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/asociados/agregarAsociado",{
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
         },
         body: JSON.stringify(body),
     })

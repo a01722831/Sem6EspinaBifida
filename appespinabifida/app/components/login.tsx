@@ -5,11 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 
-export default function Login() {
+export default function Login({error}: any) {
 	const { data: session, status } = useSession();
 	const router = useRouter();
-	const searchParams = useSearchParams();
-	const error = searchParams.get("error");
 
 	useEffect(() => {
 		if (session?.user) {
