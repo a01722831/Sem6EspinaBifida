@@ -3,7 +3,7 @@ export async function GET(){
         method: "GET",
         headers: {
         "Content-Type": "application/json",
-        "Authorization": "Basic " + Buffer.from(`admin:Biologia06***`).toString("base64"),
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
       }
     });
     const response = (await res.json()).items;
