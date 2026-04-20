@@ -10,7 +10,8 @@ export async function DELETE(request: Request){
     const res = await fetch(url,{
         method: "DELETE",
         headers: {
-            "ContentType": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
         },
         body: JSON.stringify({servicio_to_delete: deleteData.id})
     });

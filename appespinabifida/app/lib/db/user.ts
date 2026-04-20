@@ -1,6 +1,12 @@
 export async function getUserByEmail(email: any) {
   const res = await fetch(
-    `https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/user/getUserbyEmail?email=${email}`
+    `https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/user/getUserbyEmail?email=${email}`,{
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
+      }
+    }
   );
   const data = await res.json();
   if (!data.items[0]) {
@@ -16,6 +22,7 @@ export async function createUser(data: any) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${process.env.DB_USER}:${process.env.DB_PASSWORD}`).toString("base64"),
       },
       body: JSON.stringify({
         email: data.email,

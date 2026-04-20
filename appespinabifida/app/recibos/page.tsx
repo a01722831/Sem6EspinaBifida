@@ -5,11 +5,13 @@ import { getSession } from "next-auth/react";
 
 export default function RecibosPage() {
 	let session;
+	const [sessionLoaded, setSessionLoaded] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		getSession().then((session) => {
 			session = session;
+			setSessionLoaded(session);
 			setLoading(false);
 		});
 	}, []);
@@ -22,7 +24,7 @@ export default function RecibosPage() {
 		);
 	}
 
-	if (!session) {
+	if (!sessionLoaded) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-[#B9E5FB]">
 				<p className="text-gray-600">No autorizado</p>
