@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href: '/asociados', label: 'Asociados' },
   { href: '/servicios', label: 'Servicios' },
   { href: '/inventory', label: 'Inventario' },
-  { href: '/metricas', label: 'Métricas' },
+  { href: '/', label: 'Métricas' },
 ] as const
 
 export function Topbar() {
