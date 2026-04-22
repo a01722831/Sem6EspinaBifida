@@ -150,20 +150,25 @@ export default function ImprimirCredencialButton({
         FR
       );
 
-      // Photo placeholder (below logo)
       const PHOTO_X = FL;
-      const PHOTO_Y = TOP_Y + PAD + LOGO_H + 3; // 94
+      const PHOTO_Y = TOP_Y + PAD + LOGO_H + 3;
       const PHOTO_W = 25;
       const PHOTO_H = 30;
-      doc.setDrawColor(150, 150, 150);
-      doc.setFillColor(235, 235, 235);
-      doc.rect(PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, "FD");
-      doc.setTextColor(160, 160, 160);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(6);
-      doc.text("Foto", PHOTO_X + PHOTO_W / 2, PHOTO_Y + PHOTO_H / 2, {
-        align: "center",
-      });
+
+      if (foto) {
+        doc.addImage(foto, "JPEG", PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H);
+      } else {
+        // fallback (optional)
+        doc.setDrawColor(150, 150, 150);
+        doc.setFillColor(235, 235, 235);
+        doc.rect(PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, "FD");
+        doc.setTextColor(160, 160, 160);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6);
+        doc.text("Foto", PHOTO_X + PHOTO_W / 2, PHOTO_Y + PHOTO_H / 2, {
+          align: "center",
+        });
+      }
 
       const PHOTO_RIGHT = PHOTO_X + PHOTO_W + 2; // 49
 
@@ -314,6 +319,27 @@ export default function ImprimirCredencialButton({
       setIsLoading(false);
     }
   }
+
+  // State for the image
+  const [foto, setFoto] = useState("");
+
+  // Function to fetch and build image source
+  async function buildImageSrc() {
+    const obj = await (
+      await fetch(`/api/asociados/fotoAsociado/obtener?id=${asociado.id}`)
+    ).json();
+
+    if (!obj || !obj.image || !obj.mime) {
+      throw new Error("Invalid image object");
+    }
+
+    setFoto(`data:${obj.mime};base64,${obj.image}`);
+  }
+
+  // Load image on mount
+  useEffect(() => {
+    buildImageSrc();
+  }, []);
 
   return (
     <div className="flex flex-col items-end gap-2">

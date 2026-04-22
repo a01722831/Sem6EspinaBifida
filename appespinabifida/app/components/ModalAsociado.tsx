@@ -190,6 +190,7 @@ function mergeDetalle(a: AsociadoDetalle) {
     telCasa: a.telCasa ?? t0 ?? "—",
     telTrabajo: a.telTrabajo ?? t1 ?? "—",
     telCel: a.telCel ?? t2 ?? t1 ?? t0 ?? "—",
+    fotoUrl: ""
   };
 } 
 
@@ -259,6 +260,23 @@ export default function ModalAsociado({
     }
 
   }
+
+  const [foto, setFoto] = useState("");
+
+  async function buildImageSrc() {
+    const obj = await (await fetch(`/api/asociados/fotoAsociado/obtener?id=${asociado.id}`)).json()
+    if (!obj || !obj.image || !obj.mime) {
+      throw new Error("Invalid image object");
+    }
+    
+    setFoto(`data:${obj.mime};base64,${obj.image}`);
+    return;
+  }
+
+  useEffect(()=>{
+    buildImageSrc();
+
+  },[])
 
   function handleClose() {
     if (isEditMode && hasChanges) {
@@ -472,15 +490,15 @@ export default function ModalAsociado({
                 {/* Foto */}
                 <div className="shrink-0 flex flex-col items-center gap-2">
                   <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Foto</span>
-                  {d.fotoUrl ? (
+                  {foto != "" ? (
                     <img
-                      src={d.fotoUrl}
+                      src={foto}
                       alt={`Foto de ${d.nombre}`}
                       className="h-28 w-28 rounded-xl border border-gray-200 object-cover"
                     />
                   ) : (
                     <div className="w-28 h-28 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-xs text-gray-400 text-center">
-                      Sin imagen
+                      {}
                     </div>
                   )}
                 </div>
