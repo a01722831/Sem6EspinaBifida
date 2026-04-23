@@ -6,6 +6,7 @@ export type InventoryItem = {
   categoryId: string
   categoryName: string
   description: string
+  cuotaRecuperacion: number | null
   quantity: number
   status: InventoryStatus
 }
@@ -31,6 +32,7 @@ export type CreateProductInput = {
   name: string
   categoryId: string
   description: string
+  cuotaRecuperacion?: number | null
   quantity: number
   status: InventoryStatus
 }

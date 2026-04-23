@@ -4,6 +4,7 @@ export type MovementItemType = 'Material Médico' | 'Equipo Médico' | 'Medicame
 
 export type InventoryMovement = {
   id: number
+  itemId: number | null
   itemName: string
   itemType: MovementItemType
   date: string // YYYY-MM-DD
@@ -16,6 +17,8 @@ export type ListMovementsParams = {
   search?: string
   movementType?: MovementType | 'all'
   itemType?: MovementItemType | 'all'
+  itemId?: number
+  itemName?: string
   date?: string // YYYY-MM-DD
   cursor?: string | null
   limit?: number
@@ -27,11 +30,13 @@ export type ListMovementsResult = {
 }
 
 export type CreateMovementInput = {
+  itemId?: number
   itemName: string
   itemType: MovementItemType
   date: string // YYYY-MM-DD
   movementType: MovementType
   quantity: number
   notes: string
+  allowSimilarCreate?: boolean
 }
 

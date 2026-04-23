@@ -66,15 +66,17 @@ export function MovementHistoryList({
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-10 w-10 rounded-xl p-0 opacity-90 group-hover:opacity-100"
-            aria-label="Editar movimiento"
-            onClick={() => onEdit?.(m)}
-          >
-            <Pencil className="h-4 w-4" aria-hidden />
-          </Button>
+          {onEdit ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-10 w-10 rounded-xl p-0 opacity-90 group-hover:opacity-100"
+              aria-label="Editar movimiento"
+              onClick={() => onEdit(m)}
+            >
+              <Pencil className="h-4 w-4" aria-hidden />
+            </Button>
+          ) : null}
         </div>
       ))}
     </div>

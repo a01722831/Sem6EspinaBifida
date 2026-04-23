@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
+import {
+  findSimilarInventoryItemsByName,
+  movementItemTypeFromCategoryId,
+  searchInventoryItemsByName,
+} from '../../lib/api/inventory'
 import { createMovement } from '../../lib/api/movements'
+import type { InventoryItem } from '../../lib/types/inventory'
 import type {
   CreateMovementInput,
   InventoryMovement,
@@ -41,6 +47,14 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`
 }
 
+function normalizeName(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
 export function NewMovementModal({
   open,
   onClose,
@@ -50,10 +64,17 @@ export function NewMovementModal({
 }: Props) {
   const [movementType, setMovementType] = useState<MovementType>('in')
   const [itemType, setItemType] = useState<MovementItemType | ''>('')
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
   const [itemName, setItemName] = useState('')
   const [date, setDate] = useState('')
   const [quantity, setQuantity] = useState('')
   const [notes, setNotes] = useState('')
+  const [allowSimilarCreate, setAllowSimilarCreate] = useState(false)
+
+  const [suggestions, setSuggestions] = useState<InventoryItem[]>([])
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [similarMatches, setSimilarMatches] = useState<InventoryItem[]>([])
+
   const [errors, setErrors] = useState<FieldErrors>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -65,10 +86,14 @@ export function NewMovementModal({
     setErrors({})
     setSubmitError(null)
     setSubmitting(false)
+    setAllowSimilarCreate(false)
+    setSimilarMatches([])
+    setSuggestions([])
 
     if (initial) {
       setMovementType(initial.movementType)
       setItemType(initial.itemType)
+      setSelectedItemId(initial.itemId)
       setItemName(initial.itemName)
       setDate(initial.date)
       setQuantity(String(initial.quantity))
@@ -78,17 +103,68 @@ export function NewMovementModal({
 
     setMovementType('in')
     setItemType('')
+    setSelectedItemId(null)
     setItemName('')
     setDate(todayISO())
     setQuantity('')
     setNotes('')
   }, [open, initial])
 
+  useEffect(() => {
+    if (!open) return
+
+    const query = itemName.trim()
+    if (!query) {
+      setSuggestions([])
+      setSimilarMatches([])
+      return
+    }
+
+    let alive = true
+    setSuggestionsLoading(true)
+
+    Promise.all([
+      searchInventoryItemsByName(query, 6),
+      movementType === 'in' && selectedItemId === null && query.length >= 3
+        ? findSimilarInventoryItemsByName(query, 4)
+        : Promise.resolve([]),
+    ])
+      .then(([suggestedItems, similarItems]) => {
+        if (!alive) return
+
+        setSuggestions(suggestedItems)
+
+        const normalizedQuery = normalizeName(query)
+        const filteredSimilar = similarItems.filter(
+          (item) => normalizeName(item.name) !== normalizedQuery,
+        )
+        setSimilarMatches(filteredSimilar)
+      })
+      .catch(() => {
+        if (!alive) return
+        setSuggestions([])
+        setSimilarMatches([])
+      })
+      .finally(() => {
+        if (!alive) return
+        setSuggestionsLoading(false)
+      })
+
+    return () => {
+      alive = false
+    }
+  }, [open, itemName, movementType, selectedItemId])
+
+  useEffect(() => {
+    if (!open) return
+    setAllowSimilarCreate(false)
+  }, [movementType, open])
+
   function validate(): boolean {
     const next: FieldErrors = {}
+
     if (!movementType) next.movementType = 'Selecciona el tipo de movimiento.'
-    if (!itemType) next.itemType = 'Selecciona el tipo de artículo.'
-    if (!itemName.trim()) next.itemName = 'Indica el nombre del artículo.'
+
     if (!date) next.date = 'Selecciona una fecha.'
 
     const q = Number(quantity)
@@ -96,8 +172,39 @@ export function NewMovementModal({
       next.quantity = 'Indica una cantidad válida (mayor a 0).'
     }
 
+    const trimmedName = itemName.trim()
+    if (movementType === 'out') {
+      if (!selectedItemId) {
+        next.itemName = 'Para salida debes seleccionar un artículo existente.'
+      }
+    } else {
+      if (!trimmedName) {
+        next.itemName = 'Indica el nombre del artículo.'
+      }
+      if (!selectedItemId && !itemType) {
+        next.itemType = 'Selecciona el tipo de artículo para crear uno nuevo.'
+      }
+      if (!selectedItemId && similarMatches.length > 0 && !allowSimilarCreate) {
+        next.itemName =
+          'Hay artículos con nombre muy parecido. Selecciona una sugerencia o confirma crear uno nuevo.'
+      }
+    }
+
     setErrors(next)
     return Object.keys(next).length === 0
+  }
+
+  function handleSelectSuggestion(item: InventoryItem) {
+    setSelectedItemId(item.id)
+    setItemName(item.name)
+    setItemType(movementItemTypeFromCategoryId(item.categoryId))
+    setAllowSimilarCreate(false)
+    setSimilarMatches([])
+    setErrors((prev) => ({
+      ...prev,
+      itemName: undefined,
+      itemType: undefined,
+    }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -105,21 +212,30 @@ export function NewMovementModal({
     setSubmitError(null)
     if (!validate()) return
 
+    const resolvedType: MovementItemType =
+      (itemType as MovementItemType) || 'Consumible'
+
     setSubmitting(true)
     try {
       const input: CreateMovementInput = {
         movementType,
-        itemType: itemType as MovementItemType,
+        itemType: resolvedType,
+        itemId: selectedItemId ?? undefined,
         itemName: itemName.trim(),
         date,
         quantity: Math.floor(Number(quantity)),
         notes: notes.trim(),
+        allowSimilarCreate,
       }
       const m = await createMovement(input)
       onCreated(m)
       onClose()
-    } catch {
-      setSubmitError('No se pudo registrar el movimiento. Intenta de nuevo.')
+    } catch (error) {
+      if (error instanceof Error) {
+        setSubmitError(error.message)
+      } else {
+        setSubmitError('No se pudo registrar el movimiento. Intenta de nuevo.')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -141,7 +257,10 @@ export function NewMovementModal({
             </label>
             <Select
               value={movementType}
-              onChange={(e) => setMovementType(e.target.value as MovementType)}
+              onChange={(e) => {
+                setMovementType(e.target.value as MovementType)
+                setErrors((prev) => ({ ...prev, movementType: undefined }))
+              }}
               aria-invalid={Boolean(errors.movementType)}
             >
               <option value="in">Entrada</option>
@@ -158,8 +277,12 @@ export function NewMovementModal({
             </label>
             <Select
               value={itemType}
-              onChange={(e) => setItemType(e.target.value as MovementItemType | '')}
+              onChange={(e) => {
+                setItemType(e.target.value as MovementItemType | '')
+                setErrors((prev) => ({ ...prev, itemType: undefined }))
+              }}
               aria-invalid={Boolean(errors.itemType)}
+              disabled={selectedItemId !== null}
             >
               <option value="">Seleccionar…</option>
               {itemTypeOptions.map((t) => (
@@ -168,6 +291,11 @@ export function NewMovementModal({
                 </option>
               ))}
             </Select>
+            {selectedItemId !== null ? (
+              <p className="mt-1 text-xs text-slate-500">
+                Se asignó automáticamente según el artículo seleccionado.
+              </p>
+            ) : null}
             {errors.itemType ? (
               <p className="mt-1 text-sm text-rose-700">{errors.itemType}</p>
             ) : null}
@@ -179,10 +307,71 @@ export function NewMovementModal({
             </label>
             <Input
               value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              placeholder="Nombre del artículo médico"
+              onChange={(e) => {
+                setItemName(e.target.value)
+                setSubmitError(null)
+                setAllowSimilarCreate(false)
+                setErrors((prev) => ({ ...prev, itemName: undefined }))
+                if (selectedItemId !== null) {
+                  setSelectedItemId(null)
+                }
+              }}
+              placeholder="Escribe para buscar y seleccionar"
               aria-invalid={Boolean(errors.itemName)}
             />
+
+            {suggestionsLoading ? (
+              <p className="mt-2 text-xs text-slate-500">Buscando artículos…</p>
+            ) : null}
+
+            {itemName.trim() ? (
+              <div className="mt-2 overflow-hidden rounded-lg border border-slate-200">
+                {suggestions.length > 0 ? (
+                  <div className="max-h-40 overflow-y-auto bg-white">
+                    {suggestions.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-3 py-2 text-left text-sm transition last:border-b-0 hover:bg-slate-50"
+                        onClick={() => handleSelectSuggestion(item)}
+                      >
+                        <span className="font-medium text-slate-800">{item.name}</span>
+                        <span className="text-xs text-slate-500">{item.categoryName}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-3 py-2 text-xs text-slate-500">
+                    {movementType === 'out'
+                      ? 'No hay coincidencias. Para salida debes elegir un artículo existente.'
+                      : 'Sin coincidencias exactas. Puedes crear uno nuevo si lo confirmas.'}
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {selectedItemId !== null ? (
+              <p className="mt-2 text-xs font-medium text-emerald-700">
+                Artículo seleccionado del inventario.
+              </p>
+            ) : null}
+
+            {movementType === 'in' && selectedItemId === null && similarMatches.length > 0 ? (
+              <label className="mt-2 flex items-start gap-2 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={allowSimilarCreate}
+                  onChange={(e) => setAllowSimilarCreate(e.target.checked)}
+                />
+                <span>
+                  Hay artículos similares ({similarMatches
+                    .map((item) => item.name)
+                    .join(', ')}). Confirmo crear un artículo nuevo con este nombre.
+                </span>
+              </label>
+            ) : null}
+
             {errors.itemName ? (
               <p className="mt-1 text-sm text-rose-700">{errors.itemName}</p>
             ) : null}
@@ -197,7 +386,10 @@ export function NewMovementModal({
               min={1}
               step={1}
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) => {
+                setQuantity(e.target.value)
+                setErrors((prev) => ({ ...prev, quantity: undefined }))
+              }}
               placeholder="0"
               aria-invalid={Boolean(errors.quantity)}
             />
@@ -213,7 +405,10 @@ export function NewMovementModal({
             <Input
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => {
+                setDate(e.target.value)
+                setErrors((prev) => ({ ...prev, date: undefined }))
+              }}
               aria-invalid={Boolean(errors.date)}
             />
             {errors.date ? (
@@ -258,4 +453,3 @@ export function NewMovementModal({
     </Modal>
   )
 }
-

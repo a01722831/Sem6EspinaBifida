@@ -1,3 +1,12 @@
+import {
+  categoryIdFromMovementItemType,
+  createProduct,
+  findInventoryItemByExactName,
+  findSimilarInventoryItemsByName,
+  getInventoryItemById,
+  movementItemTypeFromCategoryId,
+  updateInventoryQuantity,
+} from './inventory'
 import type {
   CreateMovementInput,
   InventoryMovement,
@@ -16,6 +25,7 @@ const MOCK_ITEM_TYPES: MovementItemType[] = [
 const MOCK_MOVEMENTS: InventoryMovement[] = [
   {
     id: 47951,
+    itemId: null,
     itemName: 'Válvula de Derivación Ventrículo-Peritoneal',
     itemType: 'Equipo Médico',
     date: '2024-01-15',
@@ -25,6 +35,7 @@ const MOCK_MOVEMENTS: InventoryMovement[] = [
   },
   {
     id: 47953,
+    itemId: null,
     itemName: 'Catéter Vesical Pediátrico',
     itemType: 'Material Médico',
     date: '2024-02-20',
@@ -34,6 +45,7 @@ const MOCK_MOVEMENTS: InventoryMovement[] = [
   },
   {
     id: 47955,
+    itemId: null,
     itemName: 'Andadera Ortopédica Infantil',
     itemType: 'Equipo Médico',
     date: '2024-03-10',
@@ -43,6 +55,7 @@ const MOCK_MOVEMENTS: InventoryMovement[] = [
   },
   {
     id: 47957,
+    itemId: null,
     itemName: 'Sondas Urinarias Calibre 8-12',
     itemType: 'Consumible',
     date: '2024-01-25',
@@ -52,6 +65,7 @@ const MOCK_MOVEMENTS: InventoryMovement[] = [
   },
   {
     id: 47959,
+    itemId: null,
     itemName: 'Silla de Ruedas Pediátrica',
     itemType: 'Equipo Médico',
     date: '2024-02-15',
@@ -72,6 +86,19 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
+function asPositiveQuantity(rawQuantity: number) {
+  const quantity = Math.floor(Number(rawQuantity))
+  if (Number.isNaN(quantity) || quantity <= 0) {
+    throw new Error('Indica una cantidad válida (mayor a 0).')
+  }
+  return quantity
+}
+
+function formatSimilarList(names: string[]) {
+  if (names.length === 0) return ''
+  return names.join(', ')
+}
+
 export async function listMovementItemTypes(): Promise<MovementItemType[]> {
   await sleep(120)
   return MOCK_ITEM_TYPES
@@ -88,10 +115,14 @@ export async function listMovements(
     search = '',
     movementType = 'all',
     itemType = 'all',
+    itemId,
+    itemName = '',
     date = '',
     cursor,
     limit = 6,
   } = params
+
+  const normalizedItemName = normalize(itemName)
 
   await sleep(220)
 
@@ -106,9 +137,20 @@ export async function listMovements(
 
     const matchesItemType = itemType === 'all' || !itemType || m.itemType === itemType
 
+    const matchesItemReference =
+      (!itemId && !normalizedItemName) ||
+      (Boolean(itemId) && m.itemId === itemId) ||
+      (Boolean(normalizedItemName) && normalize(m.itemName) === normalizedItemName)
+
     const matchesDate = !date || m.date === date
 
-    return matchesSearch && matchesType && matchesItemType && matchesDate
+    return (
+      matchesSearch &&
+      matchesType &&
+      matchesItemType &&
+      matchesItemReference &&
+      matchesDate
+    )
   })
 
   const start = cursor ? Number(cursor) : 0
@@ -126,17 +168,65 @@ export async function createMovement(
 ): Promise<InventoryMovement> {
   await sleep(200)
 
-  const trimmedName = input.itemName.trim()
-  if (!trimmedName) throw new Error('Nombre inválido')
-  if (!MOCK_ITEM_TYPES.includes(input.itemType)) throw new Error('Tipo inválido')
+  if (!MOCK_ITEM_TYPES.includes(input.itemType)) {
+    throw new Error('Selecciona un tipo de artículo válido.')
+  }
 
-  const qty = Math.floor(Number(input.quantity))
-  if (Number.isNaN(qty) || qty <= 0) throw new Error('Cantidad inválida')
+  const qty = asPositiveQuantity(input.quantity)
+
+  let resolvedItem =
+    input.itemId !== undefined ? await getInventoryItemById(input.itemId) : null
+
+  const trimmedName = input.itemName.trim()
+
+  if (!resolvedItem && trimmedName) {
+    const exactByName = await findInventoryItemByExactName(trimmedName)
+    if (exactByName) {
+      resolvedItem = exactByName
+    }
+  }
+
+  if (input.movementType === 'out' && !resolvedItem) {
+    throw new Error('Para salida debes seleccionar un artículo existente.')
+  }
+
+  if (input.movementType === 'in' && !resolvedItem) {
+    if (!trimmedName) {
+      throw new Error('Indica el nombre del artículo.')
+    }
+
+    const similar = await findSimilarInventoryItemsByName(trimmedName, 4)
+    if (similar.length > 0 && !input.allowSimilarCreate) {
+      const similarNames = similar.map((item) => item.name)
+      throw new Error(
+        `Se encontraron artículos similares: ${formatSimilarList(similarNames)}. Selecciona una sugerencia o confirma crear uno nuevo.`,
+      )
+    }
+
+    const created = await createProduct({
+      name: trimmedName,
+      categoryId: categoryIdFromMovementItemType(input.itemType),
+      description: input.notes.trim() || 'Sin descripción',
+      cuotaRecuperacion: null,
+      quantity: 0,
+      status: 'out_of_stock',
+    })
+
+    resolvedItem = created
+  }
+
+  if (!resolvedItem) {
+    throw new Error('No se pudo resolver el artículo para registrar el movimiento.')
+  }
+
+  const stockDelta = input.movementType === 'in' ? qty : -qty
+  const updatedInventoryItem = await updateInventoryQuantity(resolvedItem.id, stockDelta)
 
   const m: InventoryMovement = {
     id: nextMockId++,
-    itemName: trimmedName,
-    itemType: input.itemType,
+    itemId: updatedInventoryItem.id,
+    itemName: updatedInventoryItem.name,
+    itemType: movementItemTypeFromCategoryId(updatedInventoryItem.categoryId),
     date: input.date,
     movementType: input.movementType,
     quantity: qty,
