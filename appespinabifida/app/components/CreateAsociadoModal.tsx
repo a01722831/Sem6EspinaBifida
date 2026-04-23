@@ -80,6 +80,7 @@ type FormState = {
   familiarConDTN: "si" | "no";
   exposicionToxicosEmbarazo: "si" | "no";
   descripcionToxinas: string;
+  foto: any;
 };
 
 type FieldErrors = Partial<Record<keyof FormState, string>>;
@@ -152,6 +153,7 @@ function initialForm(): FormState {
     familiarConDTN: "no",
     exposicionToxicosEmbarazo: "no",
     descripcionToxinas: "",
+    foto: null
   };
 }
 
@@ -229,11 +231,51 @@ export default function CreateAsociadoModal({ open, onClose}: Props) {
     return Object.keys(next).length === 0;
   }
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    update("fotoUrl", url);
+
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = () => {
+      img.src = reader.result as string;
+    };
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const SIZE = 200;
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+
+      // Optional: keep aspect ratio (center crop)
+      const scale = Math.max(SIZE / img.width, SIZE / img.height);
+      const x = (SIZE - img.width * scale) / 2;
+      const y = (SIZE - img.height * scale) / 2;
+
+      ctx?.drawImage(
+        img,
+        0,
+        0,
+        img.width,
+        img.height,
+        x,
+        y,
+        img.width * scale,
+        img.height * scale
+      );
+
+      const resizedBase64 = canvas.toDataURL("image/jpeg");
+
+      const url = URL.createObjectURL(file);
+
+      update("foto", resizedBase64);
+      update("fotoUrl", url);
+    };
   }
 
   function handleSubmit(e: React.FormEvent) {

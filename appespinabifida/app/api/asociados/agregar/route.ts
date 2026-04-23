@@ -64,6 +64,7 @@ type FormState = {
   familiarConDTN: "si" | "no";
   exposicionToxicosEmbarazo: "si" | "no";
   descripcionToxinas: string;
+  foto: any;
 };
 export async function POST(request: Request){
     const body : FormState = (await request.json());
