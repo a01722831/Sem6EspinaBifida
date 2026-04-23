@@ -32,7 +32,7 @@ export default async function DetalleEstudioPage({
   const { id } = await params;
 
   const res = await fetch(
-    `${process.env.BASE_URL}/api/servicios/obtener/estudios/porId?id=${id}`
+    `https://sem6-espina-bifida.vercel.app/api/servicios/obtener/estudios/porId?id=${id}`
   );
   if (!res.ok) {
     throw new Error(`Estudio no encontrado (id=${id})`);
