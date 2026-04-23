@@ -32,12 +32,12 @@ export default async function DetalleConsultaPage({
   const { id } = await params;
 
   const res = await fetch(
-    `${process.env.BASE_URL}/api/servicios/obtener/consultas/porId?id=${id}`
+    `https://sem6-espina-bifida.vercel.app/api/servicios/obtener/consultas/porId?id=${id}`
   );
   const data = await res.json();
 
   const resEstudios = await fetch(
-    `${process.env.BASE_URL}/api/servicios/obtener/estudios/porConsulta?id=${id}`
+    `https://sem6-espina-bifida.vercel.app/api/servicios/obtener/estudios/porConsulta?id=${id}`
   );
   const listaEstudios = await resEstudios.json();
 
