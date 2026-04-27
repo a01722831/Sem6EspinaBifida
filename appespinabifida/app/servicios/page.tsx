@@ -20,8 +20,8 @@ interface Servicio {
   idAsociado: string
   asociado: string
   medico: string
+  laboratorio?: string
   fecha: string
-  hora: string
   estatus: 'Pendiente' | 'En proceso' | 'Completado' | 'Cancelado'
 }
 
@@ -72,8 +72,8 @@ function useServicios() {
               " " +
               servicio.apellidos_asociado,
             medico: servicio.medico,
+            laboratorio: servicio.tipo_servicio !== 'Consulta' ? servicio.laboratorio : undefined,
             fecha: date,
-            hora: time,
             estatus: servicio.estatus,
           };
         });
@@ -106,8 +106,8 @@ interface ServicioFilters {
   tipo: string
   asociado: string
   medico: string
-  fechaInicio: string
-  fechaFin: string
+  laboratorio: string
+  fecha: string
   estatus: string
 }
 
@@ -127,8 +127,8 @@ function filterServicios(
     )
       return false
     if (filters.medico !== 'Todos' && s.medico !== filters.medico) return false
-    if (filters.fechaInicio && s.fecha < filters.fechaInicio) return false
-    if (filters.fechaFin && s.fecha > filters.fechaFin) return false
+    if (filters.laboratorio !== 'Todos' && s.laboratorio !== filters.laboratorio) return false
+    if (filters.fecha && s.fecha !== filters.fecha) return false
     if (filters.estatus !== 'Todos' && s.estatus !== filters.estatus)
       return false
     return true
@@ -136,6 +136,14 @@ function filterServicios(
 }
 
 // ─── Badge class helpers ──────────────────────────────────────────────────────
+
+const LABORATORIOS: Record<string, string> = {
+  L01: 'Lab. Médico Cerrus',
+  L02: 'Centro de Imagen UDEM',
+  L03: 'Hospital San José TEC',
+  L04: 'Laboratorio Clínico Lomas',
+  L05: 'Diagnóstica del Norte',
+}
 
 const TIPO_CLASSES: Record<Servicio['tipo'], string> = {
   Consulta: 'bg-sky-100 text-sky-800',
@@ -230,9 +238,8 @@ function ServiciosTable({
             </th>
             <th className="px-4 py-4 text-left text-sm font-semibold">Folio</th>
             <th className="px-4 py-4 text-left text-sm font-semibold">Asociado</th>
-            <th className="px-4 py-4 text-left text-sm font-semibold">Médico</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Médico / Lab.</th>
             <th className="px-4 py-4 text-left text-sm font-semibold">Fecha</th>
-            <th className="px-4 py-4 text-left text-sm font-semibold">Hora</th>
             <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
               Estatus
             </th>
@@ -241,19 +248,19 @@ function ServiciosTable({
         <tbody className="divide-y divide-slate-200">
           {loading ? (
             <tr>
-              <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>
+              <td className="px-4 py-6 text-sm text-slate-500" colSpan={6}>
                 Cargando…
               </td>
             </tr>
           ) : error ? (
             <tr>
-              <td className="px-4 py-6 text-sm text-rose-700" colSpan={7}>
+              <td className="px-4 py-6 text-sm text-rose-700" colSpan={6}>
                 {error}
               </td>
             </tr>
           ) : servicios.length === 0 ? (
             <tr>
-              <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>
+              <td className="px-4 py-6 text-sm text-slate-500" colSpan={6}>
                 Sin resultados.
               </td>
             </tr>
@@ -278,9 +285,12 @@ function ServiciosTable({
                   <span className="block font-medium text-slate-800">{s.asociado}</span>
                   <span className="block text-xs text-slate-400">{s.idAsociado}</span>
                 </td>
-                <td className="px-4 py-5 text-sm text-slate-700">{s.medico}</td>
+                <td className="px-4 py-5 text-sm text-slate-700">
+                  {s.tipo === 'Consulta'
+                    ? s.medico
+                    : (LABORATORIOS[s.laboratorio ?? ''] ?? s.laboratorio ?? '—')}
+                </td>
                 <td className="px-4 py-5 text-sm text-slate-700">{s.fecha}</td>
-                <td className="px-4 py-5 text-sm text-slate-700">{s.hora}</td>
                 <td className="px-4 py-5 text-sm">
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${ESTATUS_CLASSES[s.estatus]}`}
@@ -307,8 +317,8 @@ export default function ServiciosPage() {
   const [tipo, setTipo] = useState('Todos')
   const [asociado, setAsociado] = useState('')
   const [medico, setMedico] = useState('Todos')
-  const [fechaInicio, setFechaInicio] = useState('')
-  const [fechaFin, setFechaFin] = useState('')
+  const [laboratorio, setLaboratorio] = useState('Todos')
+  const [fecha, setFecha] = useState('')
   const [estatus, setEstatus] = useState('Todos')
   const [nuevoServicioOpen, setNuevoServicioOpen] = useState(false)
   const [nuevaConsultaOpen, setNuevaConsultaOpen] = useState(false)
@@ -322,8 +332,8 @@ export default function ServiciosPage() {
     tipo !== 'Todos' ||
     asociado !== '' ||
     medico !== 'Todos' ||
-    fechaInicio !== '' ||
-    fechaFin !== '' ||
+    laboratorio !== 'Todos' ||
+    fecha !== '' ||
     estatus !== 'Todos'
 
   function clearFilters() {
@@ -331,8 +341,8 @@ export default function ServiciosPage() {
     setTipo('Todos')
     setAsociado('')
     setMedico('Todos')
-    setFechaInicio('')
-    setFechaFin('')
+    setLaboratorio('Todos')
+    setFecha('')
     setEstatus('Todos')
   }
 
@@ -351,11 +361,11 @@ export default function ServiciosPage() {
         tipo,
         asociado: debouncedAsociado,
         medico,
-        fechaInicio,
-        fechaFin,
+        laboratorio,
+        fecha,
         estatus,
       }),
-    [allServicios, debouncedFolio, tipo, debouncedAsociado, medico, fechaInicio, fechaFin, estatus],
+    [allServicios, debouncedFolio, tipo, debouncedAsociado, medico, laboratorio, fecha, estatus],
   )
 
   function handleRowClick(s: Servicio) {
@@ -437,6 +447,14 @@ export default function ServiciosPage() {
             </span>
           </div>
 
+          {/* Fecha */}
+          <Input
+            type="date"
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
+            aria-label="Filtrar por fecha"
+          />
+
           {/* Médico */}
           <div className="relative">
             <Select
@@ -456,53 +474,39 @@ export default function ServiciosPage() {
             </span>
           </div>
 
-          {/* Fecha inicio */}
-          <div>
-            <span className="mb-1 block text-xs text-slate-500">Desde</span>
-            <Input
-              type="date"
-              value={fechaInicio}
-              max={fechaFin || undefined}
-              onChange={(e) => {
-                const val = e.target.value
-                setFechaInicio(val)
-                if (fechaFin && val > fechaFin) setFechaFin('')
-              }}
-              aria-label="Fecha inicio"
-            />
-          </div>
-
-          {/* Fecha fin */}
-          <div>
-            <span className="mb-1 block text-xs text-slate-500">Hasta</span>
-            <Input
-              type="date"
-              value={fechaFin}
-              min={fechaInicio || undefined}
-              onChange={(e) => setFechaFin(e.target.value)}
-              aria-label="Fecha fin"
-            />
+          {/* Laboratorio */}
+          <div className="relative">
+            <Select
+              value={laboratorio}
+              onChange={(e) => setLaboratorio(e.target.value)}
+              aria-label="Filtrar por laboratorio"
+            >
+              <option value="Todos">Todos los laboratorios</option>
+              {Object.entries(LABORATORIOS).map(([id, nombre]) => (
+                <option key={id} value={id}>{nombre}</option>
+              ))}
+            </Select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              ▼
+            </span>
           </div>
 
           {/* Estatus */}
-          <div>
-            <span className="mb-1 block text-xs text-transparent select-none">_</span>
-            <div className="relative">
-              <Select
-                value={estatus}
-                onChange={(e) => setEstatus(e.target.value)}
-                aria-label="Filtrar por estatus"
-              >
-                <option value="Todos">Todos los estatus</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Completado">Completado</option>
-                <option value="Cancelado">Cancelado</option>
-              </Select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                ▼
-              </span>
-            </div>
+          <div className="relative">
+            <Select
+              value={estatus}
+              onChange={(e) => setEstatus(e.target.value)}
+              aria-label="Filtrar por estatus"
+            >
+              <option value="Todos">Todos los estatus</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completado">Completado</option>
+              <option value="Cancelado">Cancelado</option>
+            </Select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              ▼
+            </span>
           </div>
         </div>
       </div>
