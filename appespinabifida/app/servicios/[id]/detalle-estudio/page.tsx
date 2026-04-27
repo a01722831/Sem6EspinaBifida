@@ -4,6 +4,14 @@ import ImprimirOrdenButton from "../../../components/ImprimirOrdenButton";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const LABORATORIOS: Record<string, string> = {
+  L01: "Lab. Médico Cerrus",
+  L02: "Centro de Imagen UDEM",
+  L03: "Hospital San José TEC",
+  L04: "Laboratorio Clínico Lomas",
+  L05: "Diagnóstica del Norte",
+};
+
 const ESTATUS_CLASSES: Record<string, string> = {
   Pendiente: "bg-amber-100 text-amber-800",
   "En proceso": "bg-blue-100 text-blue-800",
@@ -121,17 +129,13 @@ export default async function DetalleEstudioPage({
           </div>
           <div>
             <span className="mb-0.5 block text-xs text-slate-500">
-              Médico responsable
+              Médico solicitante
             </span>
             <span className="text-sm text-slate-800">{data.medico_estudio}</span>
           </div>
           <div>
-            <span className="mb-0.5 block text-xs text-slate-500">Fecha</span>
+            <span className="mb-0.5 block text-xs text-slate-500">Fecha de solicitud</span>
             <span className="text-sm text-slate-800">{parseFechaHora(data.fecha).fecha}</span>
-          </div>
-          <div>
-            <span className="mb-0.5 block text-xs text-slate-500">Hora</span>
-            <span className="text-sm text-slate-800">{parseFechaHora(data.fecha).hora}</span>
           </div>
           <div>
             <span className="mb-0.5 block text-xs text-slate-500">
@@ -141,7 +145,37 @@ export default async function DetalleEstudioPage({
               ${data.aportacion} MXN
             </span>
           </div>
+          <div>
+            <span className="mb-0.5 block text-xs text-slate-500">
+              Laboratorio
+            </span>
+            <span className="text-sm text-slate-800">
+              {LABORATORIOS[data.laboratorio] ?? data.laboratorio ?? "—"}
+            </span>
+          </div>
+          <div>
+            <span className="mb-0.5 block text-xs text-slate-500">
+              Ya aportó
+            </span>
+            <span className={`text-sm font-medium ${data.ya_aporto ? "text-emerald-600" : "text-slate-400"}`}>
+              {data.ya_aporto ? "Sí" : "No"}
+            </span>
+          </div>
         </div>
+      </div>
+
+      {/* Notas */}
+      <div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70 px-6 py-5">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Notas
+        </h2>
+        {data.nota ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+            {data.nota}
+          </p>
+        ) : (
+          <p className="text-sm italic text-slate-400">Sin notas registradas.</p>
+        )}
       </div>
 
       {/* Consulta vinculada */}
@@ -172,14 +206,17 @@ export default async function DetalleEstudioPage({
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Resultados del estudio
         </h2>
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-          <p className="text-sm text-slate-400">
-            Aún no se han registrado resultados para este estudio.
+        {data.resultados ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+            {data.resultados}
           </p>
-          <button className="mt-3 inline-flex items-center justify-center gap-2 rounded-full bg-slate-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-600 h-9">
-            + Registrar resultados
-          </button>
-        </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+            <p className="text-sm text-slate-400">
+              Aún no se han registrado resultados para este estudio.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Recibo vinculado */}

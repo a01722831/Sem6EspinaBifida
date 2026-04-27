@@ -26,10 +26,10 @@ export default function EditarEstudioForm({ data }: { data: any }) {
   const [idMedico, setIdMedico] = useState<number>(data.id_medico ?? 0)
   const [laboratorio, setLaboratorio] = useState(data.laboratorio ?? '')
   const [estatus, setEstatus] = useState(data.estatus ?? 'Pendiente')
-  const [fecha, setFecha] = useState(data.fecha ?? '')
-  const [hora, setHora] = useState(data.hora ?? '')
+  const [fecha, setFecha] = useState(data.fecha ? data.fecha.split('T')[0] : '')
   const [aportacion, setAportacion] = useState(String(data.aportacion ?? ''))
   const [yaAporto, setYaAporto] = useState(data.ya_aporto === 1)
+  const [nota, setNota] = useState(data.nota ?? '')
   const [resultados, setResultados] = useState(data.resultados ?? '')
 
   useEffect(() => {
@@ -45,9 +45,7 @@ export default function EditarEstudioForm({ data }: { data: any }) {
   async function handleGuardar() {
     setGuardando(true)
     try {
-      const fechaCita =
-        fecha && hora ? `${fecha} ${hora}:00` : (data.fecha_cita ?? '')
-      alert(fechaCita);
+      const fechaCita = fecha ? `${fecha} 00:00:00` : (data.fecha_cita ?? '')
       const res = await fetch('/api/servicios/editar', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -170,7 +168,7 @@ export default function EditarEstudioForm({ data }: { data: any }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-500">Médico responsable</label>
+            <label className="text-xs text-slate-500">Médico solicitante</label>
             <select
               value={idMedico}
               onChange={(e) => setIdMedico(Number(e.target.value))}
@@ -186,21 +184,11 @@ export default function EditarEstudioForm({ data }: { data: any }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-500">Fecha</label>
+            <label className="text-xs text-slate-500">Fecha de solicitud</label>
             <input
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-500">Hora</label>
-            <input
-              type="time"
-              value={hora}
-              onChange={(e) => setHora(e.target.value)}
               className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
             />
           </div>
@@ -258,6 +246,20 @@ export default function EditarEstudioForm({ data }: { data: any }) {
             />
           </button>
         </div>
+      </div>
+
+      {/* Notas */}
+      <div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70 px-6 py-5">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Notas
+        </h2>
+        <textarea
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          rows={3}
+          placeholder="Observaciones adicionales..."
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none resize-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 placeholder:text-slate-400"
+        />
       </div>
 
       {/* Consulta vinculada (read-only) */}
