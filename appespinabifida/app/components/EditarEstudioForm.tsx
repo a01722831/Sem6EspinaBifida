@@ -207,21 +207,22 @@ export default function EditarEstudioForm({ data }: { data: any }) {
             </div>
           </div>
 
-        </div>
 
-        {/* Laboratorio */}
-        <div className="mt-4 flex flex-col gap-1">
-          <label className="text-xs text-slate-500">Laboratorio</label>
-          <select
-            value={laboratorio}
-            onChange={(e) => setLaboratorio(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 cursor-pointer"
-          >
-            <option value="">Seleccionar laboratorio...</option>
-            {LABORATORIOS.map((lab) => (
-              <option key={lab.id} value={lab.id}>{lab.nombre}</option>
-            ))}
-          </select>
+          {/* Laboratorio */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-slate-500">Laboratorio</label>
+            <select
+              value={laboratorio}
+              onChange={(e) => setLaboratorio(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 cursor-pointer"
+            >
+              <option value="">Seleccionar laboratorio...</option>
+              {LABORATORIOS.map((lab) => (
+                <option key={lab.id} value={lab.id}>{lab.nombre}</option>
+              ))}
+            </select>
+          </div>
+
         </div>
 
         {/* Ya aportó */}
