@@ -2,6 +2,7 @@
 
 import { Badge } from '../ui/Badge'
 import type { InventoryItem } from '../../lib/types/inventory'
+import { ComodatoButton } from './ComodatoButton'
 
 export function InventoryTable({
   items,
@@ -14,7 +15,7 @@ export function InventoryTable({
 }) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className="min-w-[900px] w-full border-collapse">
+      <table className="min-w-[1000px] w-full border-collapse">
         <thead>
           <tr className="bg-slate-600 text-white">
             <th className="rounded-tl-2xl px-4 py-4 text-left text-sm font-semibold">
@@ -26,27 +27,30 @@ export function InventoryTable({
               Descripción
             </th>
             <th className="px-4 py-4 text-left text-sm font-semibold">Cantidad</th>
-            <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
+            <th className="px-4 py-4 text-left text-sm font-semibold">
               Disponibilidad
+            </th>
+            <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
+              Acciones
             </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200">
           {loading ? (
             <tr>
-              <td className="px-4 py-6 text-sm text-slate-500" colSpan={6}>
+              <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>
                 Cargando…
               </td>
             </tr>
           ) : error ? (
             <tr>
-              <td className="px-4 py-6 text-sm text-rose-700" colSpan={6}>
+              <td className="px-4 py-6 text-sm text-rose-700" colSpan={7}>
                 {error}
               </td>
             </tr>
           ) : items.length === 0 ? (
             <tr>
-              <td className="px-4 py-6 text-sm text-slate-500" colSpan={6}>
+              <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>
                 Sin resultados.
               </td>
             </tr>
@@ -68,6 +72,9 @@ export function InventoryTable({
                   <Badge variant={it.status === 'in_stock' ? 'success' : (it.status==='low_stock') ? 'warning':'failed'}>
                     {it.status === 'in_stock' ? 'En stock' : it.status==='low_stock' ? 'Limitado' : 'Agotado'}
                   </Badge>
+                </td>
+                <td className="px-4 py-5 text-sm">
+                  <ComodatoButton item={it} />
                 </td>
               </tr>
             ))
