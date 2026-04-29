@@ -82,8 +82,20 @@ export function InventoryTable({
                     : `$${it.cuotaRecuperacion.toFixed(2)}`}
                 </td>
                 <td className="px-4 py-5 text-sm">
-                  <Badge variant={it.status === 'in_stock' ? 'success' : (it.status==='low_stock') ? 'warning':'failed'}>
-                    {it.status === 'in_stock' ? 'En stock' : it.status==='low_stock' ? 'Limitado' : 'Agotado'}
+                    <Badge
+                      variant={
+                        it.status === 'in_stock'
+                          ? 'success'
+                          : it.status === 'low_stock'
+                            ? 'failed'
+                            : 'warning'
+                      }
+                    >
+                      {it.status === 'in_stock'
+                        ? 'En stock'
+                        : it.status === 'low_stock'
+                          ? 'Bajo'
+                          : 'Agotado'}
                   </Badge>
                 </td>
               </tr>

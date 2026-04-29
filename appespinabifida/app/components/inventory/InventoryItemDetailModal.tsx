@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { listMovements } from '../../lib/api/movements'
-import { updateInventoryItemQuota } from '../../lib/api/inventory'
+import { updateInventoryItemSettings } from '../../lib/api/inventory'
 import type { InventoryItem } from '../../lib/types/inventory'
 import type { InventoryMovement } from '../../lib/types/movements'
 import { Badge } from '../ui/Badge'
@@ -25,14 +25,14 @@ const TITLE_ID = 'inventory-item-detail-modal-title'
 
 function statusLabel(status: InventoryItem['status']) {
   if (status === 'in_stock') return 'En stock'
-  if (status === 'low_stock') return 'Limitado'
+  if (status === 'low_stock') return 'Bajo'
   return 'Agotado'
 }
 
 function statusVariant(status: InventoryItem['status']) {
   if (status === 'in_stock') return 'success'
-  if (status === 'low_stock') return 'warning'
-  return 'failed'
+  if (status === 'low_stock') return 'failed'
+  return 'warning'
 }
 
 export function InventoryItemDetailModal({
@@ -44,8 +44,10 @@ export function InventoryItemDetailModal({
   const [activeTab, setActiveTab] = useState<TabName>('info')
   const [cuotaValue, setCuotaValue] = useState('')
   const [cuotaError, setCuotaError] = useState<string | null>(null)
-  const [savingQuota, setSavingQuota] = useState(false)
-  const [quotaSaved, setQuotaSaved] = useState(false)
+  const [stockMinimoValue, setStockMinimoValue] = useState('0')
+  const [stockMinimoError, setStockMinimoError] = useState<string | null>(null)
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
 
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [movementsLoading, setMovementsLoading] = useState(false)
@@ -56,10 +58,12 @@ export function InventoryItemDetailModal({
 
     setActiveTab('info')
     setCuotaError(null)
-    setQuotaSaved(false)
+    setStockMinimoError(null)
+    setSettingsSaved(false)
     setCuotaValue(
       item.cuotaRecuperacion === null ? '' : String(item.cuotaRecuperacion),
     )
+    setStockMinimoValue(String(item.stockMinimo ?? 0))
   }, [open, item])
 
   useEffect(() => {
@@ -83,9 +87,13 @@ export function InventoryItemDetailModal({
         if (!alive) return
         setMovements(res.items)
       })
-      .catch(() => {
+      .catch((error) => {
         if (!alive) return
-        setMovementsError('No se pudieron cargar los movimientos de este artículo.')
+        setMovementsError(
+          error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los movimientos de este artículo.',
+        )
       })
       .finally(() => {
         if (!alive) return
@@ -101,39 +109,32 @@ export function InventoryItemDetailModal({
   const currentItem = item
 
   async function handleSaveQuota() {
-    setQuotaSaved(false)
+    setSettingsSaved(false)
     setCuotaError(null)
+    setStockMinimoError(null)
 
     const trimmed = cuotaValue.trim()
-    if (!trimmed) {
-      setSavingQuota(true)
-      try {
-        const updated = await updateInventoryItemQuota(currentItem.id, null)
-        onItemUpdated(updated)
-        setQuotaSaved(true)
-      } catch {
-        setCuotaError('No se pudo actualizar la cuota de recuperación.')
-      } finally {
-        setSavingQuota(false)
-      }
-      return
-    }
-
-    const parsed = Number(trimmed)
-    if (Number.isNaN(parsed) || parsed < 0) {
+    const parsedQuota = trimmed === '' ? null : Number(trimmed)
+    if (trimmed !== '' && (Number.isNaN(parsedQuota) || parsedQuota < 0)) {
       setCuotaError('Ingresa una cuota válida mayor o igual a 0.')
       return
     }
 
-    setSavingQuota(true)
+    const parsedStock = Number(stockMinimoValue)
+    if (stockMinimoValue.trim() === '' || Number.isNaN(parsedStock) || parsedStock < 0) {
+      setStockMinimoError('Ingresa un stock mínimo válido mayor o igual a 0.')
+      return
+    }
+
+    setSavingSettings(true)
     try {
-      const updated = await updateInventoryItemQuota(currentItem.id, parsed)
+      const updated = await updateInventoryItemSettings(currentItem.id, parsedQuota, Math.floor(parsedStock))
       onItemUpdated(updated)
-      setQuotaSaved(true)
+      setSettingsSaved(true)
     } catch {
       setCuotaError('No se pudo actualizar la cuota de recuperación.')
     } finally {
-      setSavingQuota(false)
+      setSavingSettings(false)
     }
   }
 
@@ -196,39 +197,69 @@ export function InventoryItemDetailModal({
             </div>
 
             <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/70">
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Cuota de recuperación
-              </label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={cuotaValue}
-                onChange={(e) => {
-                  setQuotaSaved(false)
-                  setCuotaValue(e.target.value)
-                }}
-                placeholder="Ej. 150.00"
-                aria-invalid={Boolean(cuotaError)}
-              />
-              {cuotaError ? (
-                <p className="mt-1 text-sm text-rose-700">{cuotaError}</p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Cuota de recuperación
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={cuotaValue}
+                    onChange={(e) => {
+                      setSettingsSaved(false)
+                      setCuotaValue(e.target.value)
+                    }}
+                    placeholder="Ej. 150.00"
+                    aria-invalid={Boolean(cuotaError)}
+                  />
+                  {cuotaError ? (
+                    <p className="mt-1 text-sm text-rose-700">{cuotaError}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Puedes dejarlo vacío para mantenerla sin definir.
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Stock mínimo
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={stockMinimoValue}
+                    onChange={(e) => {
+                      setSettingsSaved(false)
+                      setStockMinimoValue(e.target.value)
+                    }}
+                    placeholder="0"
+                    aria-invalid={Boolean(stockMinimoError)}
+                  />
+                  {stockMinimoError ? (
+                    <p className="mt-1 text-sm text-rose-700">{stockMinimoError}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Cuando el inventario llegue a este valor o menos, el artículo se
+                      mostrará como Bajo.
+                    </p>
+                  )}
+                </div>
+              </div>
+              {settingsSaved ? (
+                <p className="mt-2 text-sm text-emerald-700">Cambios guardados.</p>
               ) : null}
-              {quotaSaved ? (
-                <p className="mt-1 text-sm text-emerald-700">Cuota actualizada.</p>
-              ) : (
-                <p className="mt-1 text-xs text-slate-500">
-                  Puedes dejarlo vacío para mantenerla sin definir.
-                </p>
-              )}
               <div className="mt-3 flex justify-end">
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={handleSaveQuota}
-                  disabled={savingQuota}
+                  disabled={savingSettings}
                 >
-                  {savingQuota ? 'Guardando…' : 'Guardar cuota'}
+                  {savingSettings ? 'Guardando…' : 'Guardar cambios'}
                 </Button>
               </div>
             </div>

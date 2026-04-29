@@ -2,21 +2,14 @@ import type {
   Category,
   CreateProductInput,
   InventoryItem,
-  InventoryStatus,
   ListInventoryParams,
   ListInventoryResult,
 } from '../types/inventory'
 import type { MovementItemType } from '../types/movements'
 
-const CATEGORIES: Category[] = [
-  { id: 'all', name: 'Todas las categorías' },
-  { id: 'medicamento', name: 'Medicamento' },
-  { id: 'material medico', name: 'Material Médico' },
-  { id: 'equipo medico', name: 'Equipo Médico' },
-  { id: 'consumible', name: 'Consumible' },
+const FALLBACK_CATEGORIES: Category[] = [
+  { id: 'all', name: 'Todas las categorias' },
 ]
-
-const LOW_STOCK_THRESHOLD = 5
 
 const ITEM_TYPE_BY_CATEGORY_ID: Record<string, MovementItemType> = {
   medicamento: 'Medicamento',
@@ -32,12 +25,6 @@ const CATEGORY_ID_BY_ITEM_TYPE: Record<MovementItemType, string> = {
   Consumible: 'consumible',
 }
 
-let ITEMS: InventoryItem[] = []
-let hydrated = false
-
-let nextMockId =
-  ITEMS.reduce((max, it) => Math.max(max, it.id), 0) + 1
-
 function normalize(s: string) {
   return s
     .normalize('NFD')
@@ -46,109 +33,118 @@ function normalize(s: string) {
     .toLowerCase()
 }
 
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
+function toQueryString(params: Record<string, string | number | null | undefined>) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined || value === '') continue
+    query.set(key, String(value))
+  }
+  const serialized = query.toString()
+  return serialized ? `?${serialized}` : ''
 }
 
-function isInventoryStatus(value: unknown): value is InventoryStatus {
-  return value === 'in_stock' || value === 'low_stock' || value === 'out_of_stock'
+async function parseJsonResponse(response: Response) {
+  const text = await response.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
 }
 
-function deriveStatus(quantity: number): InventoryStatus {
-  if (quantity <= 0) return 'out_of_stock'
-  if (quantity <= LOW_STOCK_THRESHOLD) return 'low_stock'
-  return 'in_stock'
+async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    cache: 'no-store',
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers ?? {}),
+    },
+  })
+
+  const payload = await parseJsonResponse(response)
+  if (!response.ok) {
+    const errorMessage =
+      payload && typeof payload === 'object' && 'error' in payload
+        ? String((payload as { error?: string }).error)
+        : `Error HTTP ${response.status}`
+    throw new Error(errorMessage)
+  }
+
+  return payload as T
 }
 
 function toCategoryName(categoryId: string) {
-  const category = CATEGORIES.find((c) => c.id === categoryId)
-  if (category) return category.name
-
   const compact = categoryId.replace(/\s+/g, ' ').trim()
   if (!compact) return 'Sin categoría'
   return `${compact.charAt(0).toUpperCase()}${compact.slice(1)}`
 }
 
-function asNonNegativeNumber(value: unknown, fallback: number) {
+function toInteger(value: unknown, fallback = 0) {
   const numberValue = Number(value)
   if (Number.isNaN(numberValue)) return fallback
-  return Math.max(0, numberValue)
+  return Math.floor(numberValue)
 }
 
-function mapIncomingItem(raw: Partial<InventoryItem> & { [key: string]: unknown }): InventoryItem {
-  const id = Number(raw.id)
-  const safeId = Number.isNaN(id) ? nextMockId++ : id
+function toNullableAmount(value: unknown) {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  if (Number.isNaN(parsed)) return null
+  return Math.max(0, Math.round(parsed * 100) / 100)
+}
 
+function toInventoryStatus(value: unknown, quantity: number, stockMinimo: number) {
+  if (value === 'in_stock' || value === 'low_stock' || value === 'out_of_stock') {
+    return value
+  }
+  if (quantity <= 0) return 'out_of_stock'
+  if (quantity <= stockMinimo) return 'low_stock'
+  return 'in_stock'
+}
+
+function mapInventoryItem(raw: Partial<InventoryItem> & Record<string, unknown>): InventoryItem {
   const categoryId = String(raw.categoryId ?? raw.categoria ?? '').trim() || 'consumible'
-  const quantity = Math.floor(asNonNegativeNumber(raw.quantity ?? raw.inventario_actual, 0))
-  const quotaRaw = raw.cuotaRecuperacion ?? raw.cuota_recuperacion
-
-  const quota =
-    quotaRaw === undefined || quotaRaw === null
-      ? null
-      : Math.floor(asNonNegativeNumber(quotaRaw, 0) * 100) / 100
-
-  const status = isInventoryStatus(raw.status) ? raw.status : deriveStatus(quantity)
+  const quantity = Math.max(0, toInteger(raw.quantity ?? raw.inventario_actual, 0))
+  const stockMinimo = Math.max(0, toInteger(raw.stockMinimo ?? raw.stock_minimo, 0))
 
   return {
-    id: safeId,
+    id: Math.max(0, toInteger(raw.id, 0)),
+    clave: String(raw.clave ?? '').trim() || (Math.max(0, toInteger(raw.id, 0)) > 0 ? `ART${Math.max(0, toInteger(raw.id, 0))}` : null),
     name: String(raw.name ?? raw.nombre ?? 'Sin nombre').trim(),
     categoryId,
     categoryName: String(raw.categoryName ?? toCategoryName(categoryId)),
     description: String(raw.description ?? raw.descripcion ?? '').trim(),
-    cuotaRecuperacion: quota,
+    unidad: String(raw.unidad ?? '').trim() || null,
+    proveedor: String(raw.proveedor ?? '').trim() || null,
+    stockMinimo,
+    cuotaRecuperacion: toNullableAmount(raw.cuotaRecuperacion ?? raw.cuota_recuperacion),
     quantity,
-    status,
+    status: toInventoryStatus(raw.status, quantity, stockMinimo),
   }
 }
 
-function cloneItem(item: InventoryItem): InventoryItem {
-  return { ...item }
-}
-
-function mergeWithExisting(remoteItems: InventoryItem[]) {
-  const localById = new Map(ITEMS.map((item) => [item.id, item]))
-  const mergedRemote = remoteItems.map((remote) => {
-    const local = localById.get(remote.id)
-    if (!local) return remote
+function mapInventoryListResult(payload: unknown): ListInventoryResult {
+  if (payload && typeof payload === 'object' && 'items' in payload) {
+    const objectPayload = payload as {
+      items?: Array<Partial<InventoryItem> & Record<string, unknown>>
+      nextCursor?: string | null
+    }
 
     return {
-      ...remote,
-      cuotaRecuperacion: local.cuotaRecuperacion,
-      quantity: local.quantity,
-      status: local.status,
-      description: local.description,
+      items: (objectPayload.items ?? []).map((item) => mapInventoryItem(item)),
+      nextCursor: objectPayload.nextCursor ?? null,
     }
-  })
-
-  const remoteIds = new Set(remoteItems.map((item) => item.id))
-  const localOnly = ITEMS.filter((item) => !remoteIds.has(item.id))
-
-  ITEMS = [...localOnly, ...mergedRemote]
-  const maxId = ITEMS.reduce((max, item) => Math.max(max, item.id), 0)
-  nextMockId = Math.max(nextMockId, maxId + 1)
-}
-
-async function hydrateInventory() {
-  try {
-    const res = await fetch('/api/inventario/obtener/inventario')
-    if (!res.ok) {
-      hydrated = true
-      return
-    }
-
-    const data = (await res.json()) as Array<Partial<InventoryItem>>
-    const remoteItems = data.map((item) => mapIncomingItem(item))
-    mergeWithExisting(remoteItems)
-    hydrated = true
-  } catch {
-    hydrated = true
   }
-}
 
-async function ensureInventoryReady() {
-  if (hydrated) return
-  await hydrateInventory()
+  const items = Array.isArray(payload)
+    ? payload.map((item) => mapInventoryItem(item as Partial<InventoryItem> & Record<string, unknown>))
+    : []
+
+  return {
+    items,
+    nextCursor: null,
+  }
 }
 
 function scoreSearchHit(itemName: string, normalizedQuery: string): number {
@@ -185,7 +181,12 @@ function levenshteinDistance(a: string, b: string) {
 }
 
 export async function listCategories(): Promise<Category[]> {
-  return CATEGORIES
+  try {
+    const categories = await requestJson<Category[]>('/api/inventario/obtener/categorias')
+    return categories.length ? categories : FALLBACK_CATEGORIES
+  } catch {
+    return FALLBACK_CATEGORIES
+  }
 }
 
 export function categoryIdFromMovementItemType(itemType: MovementItemType) {
@@ -197,35 +198,53 @@ export function movementItemTypeFromCategoryId(categoryId: string): MovementItem
 }
 
 export async function getInventoryItemById(id: number): Promise<InventoryItem | null> {
-  await ensureInventoryReady()
-  const item = ITEMS.find((it) => it.id === id)
-  return item ? cloneItem(item) : null
+  const query = toQueryString({ id, limit: 1 })
+  const payload = await requestJson<unknown>(`/api/inventario/obtener/inventario${query}`)
+  const result = mapInventoryListResult(payload)
+  return result.items[0] ?? null
 }
 
 export async function getInventorySnapshot(): Promise<InventoryItem[]> {
-  await ensureInventoryReady()
-  return ITEMS.map(cloneItem)
+  const snapshot: InventoryItem[] = []
+  let cursor: string | null = null
+
+  for (let i = 0; i < 20; i += 1) {
+    const page = await listInventory({
+      categoryId: 'all',
+      search: '',
+      cursor,
+      limit: 250,
+    })
+    snapshot.push(...page.items)
+
+    if (!page.nextCursor || page.nextCursor === cursor) {
+      break
+    }
+    cursor = page.nextCursor
+  }
+
+  return snapshot
 }
 
 export async function findInventoryItemByExactName(
   name: string,
 ): Promise<InventoryItem | null> {
-  await ensureInventoryReady()
+  const snapshot = await getInventorySnapshot()
   const normalizedName = normalize(name)
   if (!normalizedName) return null
-  const found = ITEMS.find((item) => normalize(item.name) === normalizedName)
-  return found ? cloneItem(found) : null
+  const found = snapshot.find((item) => normalize(item.name) === normalizedName)
+  return found ?? null
 }
 
 export async function findSimilarInventoryItemsByName(
   name: string,
   limit = 5,
 ): Promise<InventoryItem[]> {
-  await ensureInventoryReady()
+  const snapshot = await getInventorySnapshot()
   const normalizedName = normalize(name)
   if (!normalizedName) return []
 
-  const matches = ITEMS.map((item) => {
+  const matches = snapshot.map((item) => {
     const normalizedItemName = normalize(item.name)
     const distance = levenshteinDistance(normalizedName, normalizedItemName)
     const maxLength = Math.max(normalizedName.length, normalizedItemName.length)
@@ -249,27 +268,23 @@ export async function findSimilarInventoryItemsByName(
     })
     .slice(0, limit)
 
-  return matches.map((entry) => cloneItem(entry.item))
+  return matches.map((entry) => entry.item)
 }
 
 export async function searchInventoryItemsByName(
   query: string,
   limit = 8,
 ): Promise<InventoryItem[]> {
-  await ensureInventoryReady()
+  const result = await listInventory({
+    categoryId: 'all',
+    search: query,
+    cursor: null,
+    limit: Math.max(1, limit),
+  })
+
   const normalizedQuery = normalize(query)
 
-  const filtered = normalizedQuery
-    ? ITEMS.filter((item) => {
-        const normalizedName = normalize(item.name)
-        return (
-          normalizedName.includes(normalizedQuery) ||
-          normalize(item.description).includes(normalizedQuery)
-        )
-      })
-    : [...ITEMS]
-
-  return filtered
+  return result.items
     .sort((a, b) => {
       if (normalizedQuery) {
         const scoreA = scoreSearchHit(a.name, normalizedQuery)
@@ -280,134 +295,63 @@ export async function searchInventoryItemsByName(
       return a.name.localeCompare(b.name)
     })
     .slice(0, limit)
-    .map(cloneItem)
 }
 
 export async function updateInventoryItemQuota(
   itemId: number,
   cuotaRecuperacion: number | null,
 ): Promise<InventoryItem> {
-  await ensureInventoryReady()
-
-  const targetIndex = ITEMS.findIndex((item) => item.id === itemId)
-  if (targetIndex < 0) {
-    throw new Error('Artículo no encontrado')
-  }
-
-  const sanitizedQuota =
-    cuotaRecuperacion === null
-      ? null
-      : Math.floor(asNonNegativeNumber(cuotaRecuperacion, 0) * 100) / 100
-
-  const updated = {
-    ...ITEMS[targetIndex],
-    cuotaRecuperacion: sanitizedQuota,
-  }
-
-  ITEMS[targetIndex] = updated
-  return cloneItem(updated)
+  return updateInventoryItemSettings(itemId, cuotaRecuperacion)
 }
 
-export async function updateInventoryQuantity(
+export async function updateInventoryItemSettings(
   itemId: number,
-  delta: number,
+  cuotaRecuperacion: number | null,
+  stockMinimo?: number | null,
 ): Promise<InventoryItem> {
-  await ensureInventoryReady()
-
-  const targetIndex = ITEMS.findIndex((item) => item.id === itemId)
-  if (targetIndex < 0) {
-    throw new Error('Artículo no encontrado')
-  }
-
-  const movementDelta = Math.floor(Number(delta))
-  if (Number.isNaN(movementDelta)) {
-    throw new Error('Cantidad inválida')
-  }
-
-  const current = ITEMS[targetIndex]
-  const nextQuantity = current.quantity + movementDelta
-  if (nextQuantity < 0) {
-    throw new Error('Stock insuficiente para completar la salida.')
-  }
-
-  const updated = {
-    ...current,
-    quantity: nextQuantity,
-    status: deriveStatus(nextQuantity),
-  }
-
-  ITEMS[targetIndex] = updated
-  return cloneItem(updated)
+  const payload = await requestJson<unknown>('/api/inventario/editar/cuota', {
+    method: 'PUT',
+    body: JSON.stringify({
+      itemId,
+      cuotaRecuperacion,
+      stockMinimo,
+    }),
+  })
+  return mapInventoryItem(payload as Partial<InventoryItem> & Record<string, unknown>)
 }
 
-/**
- * Mock API shaped like a cursor-based backend.
- * Replace internals with a real fetch later.
- */
 export async function listInventory(
   params: ListInventoryParams,
 ): Promise<ListInventoryResult> {
-  await ensureInventoryReady()
   const { search = '', categoryId = 'all', cursor, limit = 5 } = params
 
-  await sleep(250)
-
-  const filtered = ITEMS.filter((it) => {
-    const matchesSearch =
-      !normalize(search) ||
-      normalize(it.name).includes(normalize(search)) ||
-      normalize(it.description).includes(normalize(search))
-
-    const matchesCategory =
-      !categoryId || categoryId === 'all' || it.categoryId === categoryId
-
-    return matchesSearch && matchesCategory
+  const query = toQueryString({
+    search,
+    categoryId,
+    cursor,
+    limit,
   })
 
-  const start = cursor ? Number(cursor) : 0
-  const page = filtered.slice(start, start + limit)
-  const nextCursor = start + limit < filtered.length ? String(start + limit) : null
-
-  return { items: page, nextCursor }
+  const payload = await requestJson<unknown>(`/api/inventario/obtener/inventario${query}`)
+  return mapInventoryListResult(payload)
 }
 
 export async function createProduct(
   input: CreateProductInput,
 ): Promise<InventoryItem> {
-  await ensureInventoryReady()
+  const payload = await requestJson<unknown>('/api/inventario/agregar/articulo', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: input.name,
+      categoryId: input.categoryId,
+      description: input.description,
+      unidad: input.unidad,
+      proveedor: input.proveedor,
+      stockMinimo: input.stockMinimo,
+      cuotaRecuperacion: input.cuotaRecuperacion,
+      quantity: input.quantity,
+    }),
+  })
 
-  const category = CATEGORIES.find((c) => c.id === input.categoryId)
-  if (!category || category.id === 'all') {
-    throw new Error('Categoría inválida')
-  }
-
-  const trimmedName = input.name.trim()
-  if (!trimmedName) {
-    throw new Error('Nombre inválido')
-  }
-
-  const normalizedName = normalize(trimmedName)
-  const duplicated = ITEMS.some((item) => normalize(item.name) === normalizedName)
-  if (duplicated) {
-    throw new Error('Ya existe un artículo con ese nombre')
-  }
-
-  const quantity = Math.max(0, Math.floor(Number(input.quantity)))
-
-  const item: InventoryItem = {
-    id: nextMockId++,
-    name: trimmedName,
-    categoryId: input.categoryId,
-    categoryName: category.name,
-    description: input.description.trim(),
-    cuotaRecuperacion:
-      input.cuotaRecuperacion === undefined || input.cuotaRecuperacion === null
-        ? null
-        : Math.floor(asNonNegativeNumber(input.cuotaRecuperacion, 0) * 100) / 100,
-    quantity,
-    status: quantity === 0 ? 'out_of_stock' : input.status,
-  }
-
-  ITEMS.unshift(item)
-  return cloneItem(item)
+  return mapInventoryItem(payload as Partial<InventoryItem> & Record<string, unknown>)
 }

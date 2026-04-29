@@ -2,10 +2,14 @@ export type InventoryStatus = 'in_stock' | 'out_of_stock' | 'low_stock'
 
 export type InventoryItem = {
   id: number
+  clave: string | null
   name: string
   categoryId: string
   categoryName: string
   description: string
+  unidad: string | null
+  proveedor: string | null
+  stockMinimo: number
   cuotaRecuperacion: number | null
   quantity: number
   status: InventoryStatus
@@ -29,10 +33,14 @@ export type ListInventoryResult = {
 }
 
 export type CreateProductInput = {
+  clave?: string | null
   name: string
   categoryId: string
   description: string
+  unidad?: string | null
+  proveedor?: string | null
+  stockMinimo?: number
   cuotaRecuperacion?: number | null
   quantity: number
-  status: InventoryStatus
+  status?: InventoryStatus
 }

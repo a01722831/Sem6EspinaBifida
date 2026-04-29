@@ -11,6 +11,12 @@ export type InventoryMovement = {
   movementType: MovementType
   quantity: number
   notes: string
+  userId?: number | null
+  userName?: string | null
+  userEmail?: string | null
+  userFirstName?: string | null
+  userLastName?: string | null
+  userRole?: string | null
 }
 
 export type ListMovementsParams = {
@@ -20,6 +26,8 @@ export type ListMovementsParams = {
   itemId?: number
   itemName?: string
   date?: string // YYYY-MM-DD
+  dateFrom?: string // YYYY-MM-DD
+  dateTo?: string // YYYY-MM-DD
   cursor?: string | null
   limit?: number
 }
@@ -33,6 +41,11 @@ export type CreateMovementInput = {
   itemId?: number
   itemName: string
   itemType: MovementItemType
+  newItemDescription?: string
+  newItemUnidad?: string
+  newItemProveedor?: string
+  newItemStockMinimo?: number
+  newItemCuotaRecuperacion?: number | null
   date: string // YYYY-MM-DD
   movementType: MovementType
   quantity: number
