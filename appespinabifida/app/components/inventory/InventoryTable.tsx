@@ -8,10 +8,12 @@ export function InventoryTable({
   items,
   loading,
   error,
+  onItemClick,
 }: {
   items: InventoryItem[]
   loading: boolean
   error: string | null
+  onItemClick?: (item: InventoryItem) => void
 }) {
   return (
     <div className="w-full overflow-x-auto">
@@ -28,6 +30,9 @@ export function InventoryTable({
             </th>
             <th className="px-4 py-4 text-left text-sm font-semibold">Cantidad</th>
             <th className="px-4 py-4 text-left text-sm font-semibold">
+              Cuota recuperación
+            </th>
+            <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
               Disponibilidad
             </th>
             <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
@@ -56,7 +61,11 @@ export function InventoryTable({
             </tr>
           ) : (
             items.map((it) => (
-              <tr key={it.id}>
+              <tr
+                key={it.id}
+                className={onItemClick ? 'cursor-pointer transition hover:bg-slate-50' : undefined}
+                onClick={onItemClick ? () => onItemClick(it) : undefined}
+              >
                 <td className="px-4 py-5 text-sm text-slate-700">{it.id}</td>
                 <td className="px-4 py-5 text-sm font-medium text-slate-800">
                   {it.name}
@@ -64,13 +73,33 @@ export function InventoryTable({
                 <td className="px-4 py-5 text-sm text-slate-700">
                   {it.categoryName}
                 </td>
-                <td className="px-4 py-5 text-sm text-slate-600">
-                  {it.description}
+                <td
+                  className="max-w-[280px] px-4 py-5 text-sm text-slate-600"
+                  title={it.description}
+                >
+                  <span className="block truncate">{it.description}</span>
                 </td>
                 <td className="px-4 py-5 text-sm text-slate-700">{it.quantity}</td>
+                <td className="px-4 py-5 text-sm text-slate-700">
+                  {it.cuotaRecuperacion === null
+                    ? 'Sin definir'
+                    : `$${it.cuotaRecuperacion.toFixed(2)}`}
+                </td>
                 <td className="px-4 py-5 text-sm">
-                  <Badge variant={it.status === 'in_stock' ? 'success' : (it.status==='low_stock') ? 'warning':'failed'}>
-                    {it.status === 'in_stock' ? 'En stock' : it.status==='low_stock' ? 'Limitado' : 'Agotado'}
+                    <Badge
+                      variant={
+                        it.status === 'in_stock'
+                          ? 'success'
+                          : it.status === 'low_stock'
+                            ? 'failed'
+                            : 'warning'
+                      }
+                    >
+                      {it.status === 'in_stock'
+                        ? 'En stock'
+                        : it.status === 'low_stock'
+                          ? 'Bajo'
+                          : 'Agotado'}
                   </Badge>
                 </td>
                 <td className="px-4 py-5 text-sm">
