@@ -93,7 +93,8 @@ export async function GET(request: Request) {
     >()
 
     async function resolveUserLabel(userId: number | null | undefined) {
-      if (!userId || userCache.has(userId)) return userCache.get(userId) ?? null
+      if (userId == null || userId <= 0) return null
+      if (userCache.has(userId)) return userCache.get(userId) ?? null
       const user = await getUserById(userId)
       if (!user) {
         userCache.set(userId, null)
@@ -114,7 +115,7 @@ export async function GET(request: Request) {
 
     const enrichedMovements = await Promise.all(
       allMovements.map(async (movement) => {
-        const profile = movement.id ? userProfilesByMovementId.get(movement.id) : null
+        const profile = movement.id > 0 ? userProfilesByMovementId.get(movement.id) : null
         if (movement.userName && movement.userRole && profile) {
           return {
             ...movement,
