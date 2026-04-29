@@ -115,7 +115,7 @@ export function InventoryItemDetailModal({
 
     const trimmed = cuotaValue.trim()
     const parsedQuota = trimmed === '' ? null : Number(trimmed)
-    if (trimmed !== '' && (Number.isNaN(parsedQuota) || parsedQuota < 0)) {
+    if (parsedQuota !== null && (Number.isNaN(parsedQuota) || parsedQuota < 0)) {
       setCuotaError('Ingresa una cuota válida mayor o igual a 0.')
       return
     }
