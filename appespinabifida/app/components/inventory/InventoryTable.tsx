@@ -2,6 +2,7 @@
 
 import { Badge } from '../ui/Badge'
 import type { InventoryItem } from '../../lib/types/inventory'
+import { ComodatoButton } from './ComodatoButton'
 
 export function InventoryTable({
   items,
@@ -33,6 +34,9 @@ export function InventoryTable({
             </th>
             <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
               Disponibilidad
+            </th>
+            <th className="rounded-tr-2xl px-4 py-4 text-left text-sm font-semibold">
+              Acciones
             </th>
           </tr>
         </thead>
@@ -97,6 +101,9 @@ export function InventoryTable({
                           ? 'Bajo'
                           : 'Agotado'}
                   </Badge>
+                </td>
+                <td className="px-4 py-5 text-sm">
+                  <ComodatoButton item={it} />
                 </td>
               </tr>
             ))
