@@ -1,86 +1,514 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSession } from "next-auth/react";
 import type { Session } from "next-auth";
 import {
-	Printer,
-	CreditCard,
+	Plus,
+	Search,
 	Banknote,
+	CreditCard,
 	Building2,
 	ArrowRightLeft,
+	Check,
 } from "lucide-react";
 
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
+import { Modal } from "../components/ui/Modal";
+import { cn } from "../lib/utils/cn";
 
-const METODOS_PAGO = [
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Estatus = "Pagado" | "Pagado parcialmente" | "Pendiente";
+type MetodoPago = "efectivo" | "tarjeta" | "deposito" | "transferencia";
+
+interface Recibo {
+	id: string;
+	asociado: string;
+	fechaEmision: string;
+	montoTotal: number;
+	montoPagado: number;
+}
+
+interface Pago {
+	id: string;
+	idRecibo: string;
+	monto: number;
+	metodoPago: MetodoPago;
+	fechaPago: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function derivarEstatus(r: Recibo): Estatus {
+	if (r.montoPagado <= 0) return "Pendiente";
+	if (r.montoPagado >= r.montoTotal) return "Pagado";
+	return "Pagado parcialmente";
+}
+
+function formatCurrency(n: number) {
+	return `$${n.toFixed(2)}`;
+}
+
+function formatDate(iso: string) {
+	return new Date(iso + "T00:00:00").toLocaleDateString("es-MX", {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	});
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const ESTATUS_VARIANT: Record<Estatus, "success" | "warning" | "failed"> = {
+	Pagado: "success",
+	"Pagado parcialmente": "warning",
+	Pendiente: "failed",
+};
+
+const METODO_LABELS: Record<MetodoPago, string> = {
+	efectivo: "Efectivo",
+	tarjeta: "Tarjeta",
+	deposito: "Depósito",
+	transferencia: "Transferencia",
+};
+
+const METODOS_PAGO: { id: MetodoPago; nombre: string; icon: React.ReactNode }[] =
+	[
+		{ id: "efectivo", nombre: "Efectivo", icon: <Banknote className="h-4 w-4" /> },
+		{ id: "tarjeta", nombre: "Tarjeta", icon: <CreditCard className="h-4 w-4" /> },
+		{ id: "deposito", nombre: "Depósito", icon: <Building2 className="h-4 w-4" /> },
+		{
+			id: "transferencia",
+			nombre: "Transferencia",
+			icon: <ArrowRightLeft className="h-4 w-4" />,
+		},
+	];
+
+const RECIBOS_INICIALES: Recibo[] = [
 	{
-		id: "efectivo",
-		nombre: "Efectivo",
-		descripcion: "Pago en efectivo",
-		icon: <Banknote className="h-5 w-5 text-slate-600" />,
+		id: "REC-2026-0001",
+		asociado: "María Guadalupe Hernández Torres",
+		fechaEmision: "2026-03-13",
+		montoTotal: 3540.0,
+		montoPagado: 3540.0,
 	},
 	{
-		id: "tarjeta",
-		nombre: "Tarjeta",
-		descripcion: "Tarjeta débito/crédito",
-		icon: <CreditCard className="h-5 w-5 text-slate-600" />,
+		id: "REC-2026-0002",
+		asociado: "Carlos Eduardo Ramírez López",
+		fechaEmision: "2026-03-15",
+		montoTotal: 1800.0,
+		montoPagado: 0,
 	},
 	{
-		id: "deposito",
-		nombre: "Depósito",
-		descripcion: "Depósito bancario",
-		icon: <Building2 className="h-5 w-5 text-slate-600" />,
+		id: "REC-2026-0003",
+		asociado: "Ana Sofía Martínez Pérez",
+		fechaEmision: "2026-03-20",
+		montoTotal: 2250.0,
+		montoPagado: 1000.0,
 	},
 	{
-		id: "transferencia",
-		nombre: "Transferencia",
-		descripcion: "Transferencia bancaria",
-		icon: <ArrowRightLeft className="h-5 w-5 text-slate-600" />,
+		id: "REC-2026-0004",
+		asociado: "Roberto Jiménez Vega",
+		fechaEmision: "2026-03-22",
+		montoTotal: 950.0,
+		montoPagado: 950.0,
+	},
+	{
+		id: "REC-2026-0005",
+		asociado: "Lucía Fernández Castro",
+		fechaEmision: "2026-03-25",
+		montoTotal: 3100.0,
+		montoPagado: 0,
+	},
+	{
+		id: "REC-2026-0006",
+		asociado: "Diego Morales Ríos",
+		fechaEmision: "2026-03-28",
+		montoTotal: 1650.0,
+		montoPagado: 800.0,
+	},
+	{
+		id: "REC-2026-0007",
+		asociado: "Valentina Cruz Mendoza",
+		fechaEmision: "2026-04-01",
+		montoTotal: 850.0,
+		montoPagado: 850.0,
+	},
+	{
+		id: "REC-2026-0008",
+		asociado: "Andrés Torres Guzmán",
+		fechaEmision: "2026-04-05",
+		montoTotal: 2400.0,
+		montoPagado: 0,
 	},
 ];
 
-const conceptos = [
+const PAGOS_INICIALES: Pago[] = [
 	{
-		id: 1,
-		concepto: "Terapia Física - Rehabilitación",
-		tipo: "Sesión",
-		cantidad: 2,
-		unitario: 450.0,
-		total: 900.0,
+		id: "PAG-001",
+		idRecibo: "REC-2026-0001",
+		monto: 2000.0,
+		metodoPago: "transferencia",
+		fechaPago: "2026-03-14",
 	},
 	{
-		id: 2,
-		concepto: "Consulta Neurología Pediátrica",
-		tipo: "Servicio",
-		cantidad: 1,
-		unitario: 850.0,
-		total: 850.0,
+		id: "PAG-002",
+		idRecibo: "REC-2026-0001",
+		monto: 1540.0,
+		metodoPago: "efectivo",
+		fechaPago: "2026-03-20",
 	},
 	{
-		id: 3,
-		concepto: "Hidroterapia Especializada",
-		tipo: "Sesión",
-		cantidad: 3,
-		unitario: 380.0,
-		total: 1140.0,
+		id: "PAG-003",
+		idRecibo: "REC-2026-0003",
+		monto: 1000.0,
+		metodoPago: "deposito",
+		fechaPago: "2026-03-22",
 	},
 	{
-		id: 4,
-		concepto: "Estudios de Laboratorio",
-		tipo: "Servicio",
-		cantidad: 1,
-		unitario: 650.0,
-		total: 650.0,
+		id: "PAG-004",
+		idRecibo: "REC-2026-0006",
+		monto: 800.0,
+		metodoPago: "tarjeta",
+		fechaPago: "2026-03-30",
+	},
+	{
+		id: "PAG-005",
+		idRecibo: "REC-2026-0007",
+		monto: 850.0,
+		metodoPago: "efectivo",
+		fechaPago: "2026-04-02",
 	},
 ];
 
-const totalRecibo = conceptos.reduce((sum, item) => sum + item.total, 0);
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+
+function useDebouncedValue<T>(value: T, delayMs: number) {
+	const [debounced, setDebounced] = useState(value);
+	useEffect(() => {
+		const t = window.setTimeout(() => setDebounced(value), delayMs);
+		return () => window.clearTimeout(t);
+	}, [value, delayMs]);
+	return debounced;
+}
+
+// ─── Shared: payment method selector ─────────────────────────────────────────
+
+function MetodoPagoSelector({
+	value,
+	onChange,
+}: {
+	value: MetodoPago;
+	onChange: (m: MetodoPago) => void;
+}) {
+	return (
+		<div className="grid grid-cols-4 gap-2">
+			{METODOS_PAGO.map((m) => {
+				const isSelected = value === m.id;
+				return (
+					<button
+						key={m.id}
+						type="button"
+						onClick={() => onChange(m.id)}
+						className={cn(
+							"flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 text-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/70",
+							isSelected
+								? "border-slate-600 bg-slate-100"
+								: "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100",
+						)}
+					>
+						<span
+							className={cn(
+								"flex h-7 w-7 items-center justify-center rounded-full",
+								isSelected
+									? "bg-slate-600 text-white"
+									: "bg-slate-200 text-slate-600",
+							)}
+						>
+							{m.icon}
+						</span>
+						<span className="text-xs font-medium text-slate-800">
+							{m.nombre}
+						</span>
+					</button>
+				);
+			})}
+		</div>
+	);
+}
+
+// ─── Registrar pago modal ─────────────────────────────────────────────────────
+
+function RegistrarPagoModal({
+	recibo,
+	pagos,
+	onRegistrar,
+	onClose,
+}: {
+	recibo: Recibo | null;
+	pagos: Pago[];
+	onRegistrar: (monto: number, metodo: MetodoPago) => void;
+	onClose: () => void;
+}) {
+	const saldoPendiente = recibo
+		? Math.round((recibo.montoTotal - recibo.montoPagado) * 100) / 100
+		: 0;
+
+	const [amount, setAmount] = useState("");
+	const [metodo, setMetodo] = useState<MetodoPago>("efectivo");
+	const [error, setError] = useState<string | null>(null);
+
+	// Reset form when switching to a different recibo
+	useEffect(() => {
+		setMetodo("efectivo");
+		setError(null);
+	}, [recibo?.id]);
+
+	// Keep amount in sync with the current saldo
+	useEffect(() => {
+		if (recibo) setAmount(saldoPendiente.toFixed(2));
+	}, [saldoPendiente, recibo?.id]);
+
+	function handleSubmit() {
+		const parsed = parseFloat(amount);
+		if (isNaN(parsed) || parsed <= 0) {
+			setError("El monto debe ser mayor a cero.");
+			return;
+		}
+		const rounded = Math.round(parsed * 100) / 100;
+		if (rounded > saldoPendiente) {
+			setError(
+				`El monto supera el saldo pendiente (${formatCurrency(saldoPendiente)}).`,
+			);
+			return;
+		}
+		onRegistrar(rounded, metodo);
+		setError(null);
+	}
+
+	const historial = pagos
+		.filter((p) => p.idRecibo === recibo?.id)
+		.slice()
+		.reverse();
+
+	return (
+		<Modal
+			open={recibo !== null}
+			onClose={onClose}
+			title="Registrar pago"
+			titleId="registrar-pago-title"
+		>
+			{recibo && (
+				<>
+					{/* Receipt summary */}
+					<div className="grid grid-cols-3 gap-4 bg-slate-50 px-5 py-4">
+						<div>
+							<p className="text-xs uppercase text-slate-400">Total</p>
+							<p className="text-sm font-semibold text-slate-800">
+								{formatCurrency(recibo.montoTotal)}
+							</p>
+						</div>
+						<div>
+							<p className="text-xs uppercase text-slate-400">Pagado</p>
+							<p className="text-sm font-semibold text-slate-800">
+								{formatCurrency(recibo.montoPagado)}
+							</p>
+						</div>
+						<div>
+							<p className="text-xs uppercase text-slate-400">Saldo</p>
+							<p className="text-sm font-semibold text-slate-800">
+								{formatCurrency(saldoPendiente)}
+							</p>
+						</div>
+					</div>
+
+					{/* Payment form */}
+					<div className="space-y-4 px-5 py-4">
+						<div>
+							<label className="mb-1 block text-xs font-medium text-slate-600">
+								Monto
+							</label>
+							<Input
+								type="number"
+								min="0.01"
+								step="0.01"
+								value={amount}
+								onChange={(e) => {
+									setAmount(e.target.value);
+									setError(null);
+								}}
+								className={
+									error ? "border-red-300 ring-2 ring-red-400/70" : ""
+								}
+							/>
+							{error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+						</div>
+						<div>
+							<p className="mb-2 text-xs font-medium text-slate-600">
+								Método de pago
+							</p>
+							<MetodoPagoSelector value={metodo} onChange={setMetodo} />
+						</div>
+					</div>
+
+					{/* Payment history */}
+					<div className="border-t border-slate-100 px-5 pb-4">
+						<p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+							Historial de pagos
+						</p>
+						{historial.length === 0 ? (
+							<p className="text-sm text-slate-400">Sin pagos registrados.</p>
+						) : (
+							<ul className="space-y-2">
+								{historial.map((p) => (
+									<li
+										key={p.id}
+										className="flex items-center justify-between text-sm"
+									>
+										<div className="flex items-center gap-2">
+											<span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+												<Check className="h-3 w-3" />
+											</span>
+											<span className="font-medium text-slate-800">
+												{formatCurrency(p.monto)}
+											</span>
+											<span className="text-slate-500">
+												{METODO_LABELS[p.metodoPago]}
+											</span>
+										</div>
+										<span className="text-slate-400">{formatDate(p.fechaPago)}</span>
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+
+					{/* Footer */}
+					<div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4">
+						<Button variant="ghost" onClick={onClose}>
+							Cancelar
+						</Button>
+						<Button
+							variant="primary"
+							onClick={handleSubmit}
+							disabled={saldoPendiente <= 0}
+						>
+							Registrar pago
+						</Button>
+					</div>
+				</>
+			)}
+		</Modal>
+	);
+}
+
+// ─── Nuevo recibo modal ───────────────────────────────────────────────────────
+
+function NuevoReciboModal({
+	open,
+	onClose,
+	onCrear,
+}: {
+	open: boolean;
+	onClose: () => void;
+	onCrear: (r: Recibo) => void;
+}) {
+	const [asociado, setAsociado] = useState("");
+	const [fecha, setFecha] = useState("");
+	const [montoTotal, setMontoTotal] = useState("");
+
+	function handleClose() {
+		setAsociado("");
+		setFecha("");
+		setMontoTotal("");
+		onClose();
+	}
+
+	function handleGuardar() {
+		const total = parseFloat(montoTotal);
+		if (!asociado || !fecha || isNaN(total) || total <= 0) return;
+		const id = `REC-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+		onCrear({ id, asociado, fechaEmision: fecha, montoTotal: total, montoPagado: 0 });
+		handleClose();
+	}
+
+	return (
+		<Modal
+			open={open}
+			onClose={handleClose}
+			title="Nuevo recibo"
+			titleId="nuevo-recibo-title"
+		>
+			<div className="space-y-4 px-5 py-4">
+				<div>
+					<label className="mb-1 block text-xs font-medium text-slate-600">
+						Asociado
+					</label>
+					<Input
+						placeholder="Nombre del asociado"
+						value={asociado}
+						onChange={(e) => setAsociado(e.target.value)}
+					/>
+				</div>
+				<div>
+					<label className="mb-1 block text-xs font-medium text-slate-600">
+						Fecha de emisión
+					</label>
+					<Input
+						type="date"
+						value={fecha}
+						onChange={(e) => setFecha(e.target.value)}
+					/>
+				</div>
+				<div>
+					<label className="mb-1 block text-xs font-medium text-slate-600">
+						Monto total
+					</label>
+					<Input
+						type="number"
+						min="0.01"
+						step="0.01"
+						placeholder="0.00"
+						value={montoTotal}
+						onChange={(e) => setMontoTotal(e.target.value)}
+					/>
+				</div>
+			</div>
+			<div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4">
+				<Button variant="ghost" onClick={handleClose}>
+					Cancelar
+				</Button>
+				<Button variant="primary" onClick={handleGuardar}>
+					Guardar
+				</Button>
+			</div>
+		</Modal>
+	);
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function RecibosPage() {
 	const [sessionLoaded, setSessionLoaded] = useState<Session | null>(null);
 	const [loading, setLoading] = useState(true);
+
+	const [recibos, setRecibos] = useState<Recibo[]>(RECIBOS_INICIALES);
+	const [pagos, setPagos] = useState<Pago[]>(PAGOS_INICIALES);
+
+	const [nuevoOpen, setNuevoOpen] = useState(false);
+	const [reciboActivo, setReciboActivo] = useState<Recibo | null>(null);
+
+	const [filterId, setFilterId] = useState("");
+	const [filterNombre, setFilterNombre] = useState("");
+	const [filterFecha, setFilterFecha] = useState("");
+	const [filterEstatus, setFilterEstatus] = useState("todos");
+
+	const debouncedId = useDebouncedValue(filterId, 300);
+	const debouncedNombre = useDebouncedValue(filterNombre, 300);
 
 	useEffect(() => {
 		getSession().then((session) => {
@@ -88,6 +516,60 @@ export default function RecibosPage() {
 			setLoading(false);
 		});
 	}, []);
+
+	function handleRegistrarPago(monto: number, metodoPago: MetodoPago) {
+		if (!reciboActivo) return;
+
+		const nuevoPago: Pago = {
+			id: `PAG-${Date.now()}`,
+			idRecibo: reciboActivo.id,
+			monto,
+			metodoPago,
+			fechaPago: new Date().toISOString().split("T")[0],
+		};
+
+		setPagos((prev) => [...prev, nuevoPago]);
+
+		setRecibos((prev) =>
+			prev.map((r) => {
+				if (r.id !== reciboActivo.id) return r;
+				return {
+					...r,
+					montoPagado: Math.round((r.montoPagado + monto) * 100) / 100,
+				};
+			}),
+		);
+
+		// Keep modal summary in sync without closing
+		setReciboActivo((prev) => {
+			if (!prev) return null;
+			return {
+				...prev,
+				montoPagado: Math.round((prev.montoPagado + monto) * 100) / 100,
+			};
+		});
+	}
+
+	const recibosFiltrados = useMemo(
+		() =>
+			recibos.filter((r) => {
+				if (
+					debouncedId &&
+					!r.id.toLowerCase().includes(debouncedId.toLowerCase())
+				)
+					return false;
+				if (
+					debouncedNombre &&
+					!r.asociado.toLowerCase().includes(debouncedNombre.toLowerCase())
+				)
+					return false;
+				if (filterFecha && r.fechaEmision !== filterFecha) return false;
+				if (filterEstatus !== "todos" && derivarEstatus(r) !== filterEstatus)
+					return false;
+				return true;
+			}),
+		[recibos, debouncedId, debouncedNombre, filterFecha, filterEstatus],
+	);
 
 	if (loading) {
 		return (
@@ -106,182 +588,167 @@ export default function RecibosPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			{/* Page Header */}
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div>
-					<h1 className="text-4xl font-semibold tracking-tight text-slate-800">
-						Recibo #001
-					</h1>
-					<p className="mt-1 text-sm text-slate-500">ID: REC-2026-0001</p>
-				</div>
-				<Badge variant="success">PAGADO</Badge>
-			</div>
+		<>
+			<NuevoReciboModal
+				open={nuevoOpen}
+				onClose={() => setNuevoOpen(false)}
+				onCrear={(r) => setRecibos((prev) => [r, ...prev])}
+			/>
+			<RegistrarPagoModal
+				recibo={reciboActivo}
+				pagos={pagos}
+				onRegistrar={handleRegistrarPago}
+				onClose={() => setReciboActivo(null)}
+			/>
 
-			{/* Associate + Receipt Data */}
-			<div className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-200/70">
-				<div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+			<div className="space-y-6">
+				{/* Header */}
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-							Datos Asociado
-						</h2>
-						<div className="space-y-3">
-							<div>
-								<p className="text-xs uppercase text-slate-400">ID</p>
-								<p className="text-base font-medium text-slate-800">
-									EB-2024-0147
-								</p>
-							</div>
-							<div>
-								<p className="text-xs uppercase text-slate-400">Nombre</p>
-								<p className="text-base font-medium text-slate-800">
-									María Guadalupe Hernández Torres
-								</p>
-							</div>
-						</div>
+						<h1 className="text-4xl font-semibold tracking-tight text-slate-800">
+							Recibos
+						</h1>
+						<p className="mt-1 text-sm text-slate-500">
+							{recibosFiltrados.length} recibo
+							{recibosFiltrados.length !== 1 ? "s" : ""}
+						</p>
 					</div>
+					<Button
+						variant="primary"
+						leftIcon={<Plus className="h-4 w-4" />}
+						onClick={() => setNuevoOpen(true)}
+					>
+						Nuevo recibo
+					</Button>
+				</div>
 
-					<div>
-						<h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-							Datos de Recibo
-						</h2>
-						<div className="space-y-3">
-							<div>
-								<p className="text-xs uppercase text-slate-400">
-									Fecha creación
-								</p>
-								<p className="text-base font-medium text-slate-800">
-									13 de marzo de 2026
-								</p>
-							</div>
-							<div>
-								<p className="text-xs uppercase text-slate-400">Fecha límite</p>
-								<p className="text-base font-medium text-slate-800">
-									28 de marzo de 2026
-								</p>
-							</div>
+				{/* Filters */}
+				<div className="rounded-2xl bg-white p-4 shadow-md ring-1 ring-slate-200/70">
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+						<div className="relative">
+							<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+							<Input
+								className="pl-9"
+								placeholder="Buscar por ID"
+								value={filterId}
+								onChange={(e) => setFilterId(e.target.value)}
+							/>
 						</div>
-					</div>
-				</div>
-			</div>
-
-			{/* Conceptos Table */}
-			<div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70">
-				<div className="border-b border-slate-100 px-6 py-4">
-					<h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-						Conceptos
-					</h2>
-				</div>
-				<div className="w-full overflow-x-auto">
-					<table className="min-w-[640px] w-full border-collapse">
-						<thead>
-							<tr className="bg-slate-600 text-white">
-								<th className="px-4 py-4 text-left text-sm font-semibold">
-									#
-								</th>
-								<th className="px-4 py-4 text-left text-sm font-semibold">
-									Concepto
-								</th>
-								<th className="px-4 py-4 text-left text-sm font-semibold">
-									Tipo
-								</th>
-								<th className="px-4 py-4 text-center text-sm font-semibold">
-									Cantidad
-								</th>
-								<th className="px-4 py-4 text-right text-sm font-semibold">
-									Unitario
-								</th>
-								<th className="rounded-tr-2xl px-4 py-4 text-right text-sm font-semibold">
-									Total
-								</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-slate-200">
-							{conceptos.map((item) => (
-								<tr key={item.id} className="transition hover:bg-slate-50">
-									<td className="px-4 py-4 text-sm text-slate-800">
-										{item.id}
-									</td>
-									<td className="px-4 py-4 text-sm font-medium text-slate-800">
-										{item.concepto}
-									</td>
-									<td className="px-4 py-4 text-sm text-slate-600">
-										{item.tipo}
-									</td>
-									<td className="px-4 py-4 text-center text-sm text-slate-800">
-										{item.cantidad}
-									</td>
-									<td className="px-4 py-4 text-right text-sm text-slate-800">
-										${item.unitario.toFixed(2)}
-									</td>
-									<td className="px-4 py-4 text-right text-sm font-medium text-slate-800">
-										${item.total.toFixed(2)}
-									</td>
-								</tr>
-							))}
-							<tr className="bg-slate-50">
-								<td
-									colSpan={5}
-									className="px-4 py-4 text-right text-sm font-semibold text-slate-700"
-								>
-									TOTAL
-								</td>
-								<td className="px-4 py-4 text-right text-base font-bold text-slate-800">
-									${totalRecibo.toFixed(2)}
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-
-			{/* Método de Pago */}
-			<div className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-200/70">
-				<h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-					Método de Pago
-				</h2>
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-					{METODOS_PAGO.map((metodo) => (
-						<button
-							key={metodo.id}
-							type="button"
-							className="flex flex-col items-center gap-3 rounded-xl border-2 border-slate-200 bg-slate-50 p-5 text-center transition hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/70"
+						<div className="relative">
+							<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+							<Input
+								className="pl-9"
+								placeholder="Buscar por nombre"
+								value={filterNombre}
+								onChange={(e) => setFilterNombre(e.target.value)}
+							/>
+						</div>
+						<Input
+							type="date"
+							value={filterFecha}
+							onChange={(e) => setFilterFecha(e.target.value)}
+						/>
+						<Select
+							value={filterEstatus}
+							onChange={(e) => setFilterEstatus(e.target.value)}
 						>
-							<span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200">
-								{metodo.icon}
-							</span>
-							<span className="text-xs font-semibold text-slate-800">
-								{metodo.nombre}
-							</span>
-							<span className="text-center text-xs text-slate-500">
-								{metodo.descripcion}
-							</span>
-						</button>
-					))}
+							<option value="todos">Todos los estatus</option>
+							<option value="Pagado">Pagado</option>
+							<option value="Pagado parcialmente">Pagado parcialmente</option>
+							<option value="Pendiente">Pendiente</option>
+						</Select>
+					</div>
+				</div>
+
+				{/* Table */}
+				<div className="rounded-2xl bg-white shadow-md ring-1 ring-slate-200/70">
+					<div className="w-full overflow-x-auto">
+						<table className="min-w-[700px] w-full border-collapse">
+							<thead>
+								<tr className="bg-slate-600 text-white">
+									<th className="rounded-tl-2xl px-5 py-4 text-left text-sm font-semibold">
+										ID Recibo
+									</th>
+									<th className="px-5 py-4 text-left text-sm font-semibold">
+										Asociado
+									</th>
+									<th className="px-5 py-4 text-left text-sm font-semibold">
+										Fecha de emisión
+									</th>
+									<th className="px-5 py-4 text-right text-sm font-semibold">
+										Pagado / Total
+									</th>
+									<th className="px-5 py-4 text-left text-sm font-semibold">
+										Estatus
+									</th>
+									<th className="rounded-tr-2xl px-5 py-4 text-center text-sm font-semibold">
+										Acciones
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-slate-100">
+								{recibosFiltrados.length === 0 ? (
+									<tr>
+										<td
+											colSpan={6}
+											className="px-5 py-10 text-center text-sm text-slate-400"
+										>
+											No se encontraron recibos.
+										</td>
+									</tr>
+								) : (
+									recibosFiltrados.map((r) => {
+										const estatus = derivarEstatus(r);
+										const isPagado = estatus === "Pagado";
+										return (
+											<tr key={r.id} className="transition hover:bg-slate-50">
+												<td className="px-5 py-4 text-sm font-medium text-slate-800">
+													{r.id}
+												</td>
+												<td className="px-5 py-4 text-sm text-slate-800">
+													{r.asociado}
+												</td>
+												<td className="px-5 py-4 text-sm text-slate-600">
+													{formatDate(r.fechaEmision)}
+												</td>
+												<td className="px-5 py-4 text-right text-sm">
+													<span className="font-medium text-slate-800">
+														{formatCurrency(r.montoPagado)}
+													</span>
+													<span className="text-slate-400">
+														{" "}
+														/ {formatCurrency(r.montoTotal)}
+													</span>
+												</td>
+												<td className="px-5 py-4">
+													<Badge variant={ESTATUS_VARIANT[estatus]}>
+														{estatus}
+													</Badge>
+												</td>
+												<td className="px-5 py-4 text-center">
+													{isPagado ? (
+														<span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+															<Check className="h-4 w-4" />
+														</span>
+													) : (
+														<Button
+															size="sm"
+															variant="secondary"
+															onClick={() => setReciboActivo(r)}
+														>
+															Registrar pago
+														</Button>
+													)}
+												</td>
+											</tr>
+										);
+									})
+								)}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
-
-			{/* Action Buttons */}
-			<div className="flex flex-wrap gap-3">
-				<Button
-					variant="secondary"
-					leftIcon={<Printer className="h-4 w-4" />}
-				>
-					Imprimir
-				</Button>
-				<Button
-					variant="secondary"
-					leftIcon={<CreditCard className="h-4 w-4" />}
-				>
-					Registrar pago
-				</Button>
-				<Button
-					variant="ghost"
-					className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-				>
-					Cancelar
-				</Button>
-			</div>
-		</div>
+		</>
 	);
 }
