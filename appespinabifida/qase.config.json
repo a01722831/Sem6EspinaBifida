@@ -1,0 +1,9 @@
+{
+  "mode": "testops",
+  "testops": {
+    "project": "EBCDC",
+    "api": {
+      "token": "504f7f5946a1e8a1fff914213fc93ddbdae93257cffecc04e4bc1d57243dca55"
+    }
+  }
+}

@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 
 export default function Login({error}: any) {
+	const [loginError, setLoginError] = useState<string | null>(null);
 	const { data: session, status } = useSession();
 	const router = useRouter();
 
@@ -49,11 +50,17 @@ export default function Login({error}: any) {
 						const email = formData.get("email");
 						const password = formData.get("password");
 
-						await signIn("credentials", {
-							email,
-							password,
-							callbackUrl: "/asociados"
+						const res = await signIn("credentials", {
+						email,
+						password,
+						redirect: false,
 						});
+
+						if (res?.error) {
+						setLoginError(res.error);
+						} else {
+						router.replace("/asociados");
+						}
 
 						
 					}}
@@ -122,11 +129,9 @@ export default function Login({error}: any) {
 						</div>
 					</div>
 
-					{error === "CredentialsSignin" ? (
-						<p className="rounded-[10px] bg-red-500/20 px-4 py-2.5 text-center text-sm font-medium text-red-300">
-							Correo o contraseña incorrectos
-						</p>
-					) : null}
+					{loginError && (
+					<p className="rounded-[10px] bg-red-500/20 px-4 py-2.5 text-center text-sm font-medium text-red-300">Correo o contraseña incorrectos</p>
+					)}
 
 					<button
 						type="submit"
