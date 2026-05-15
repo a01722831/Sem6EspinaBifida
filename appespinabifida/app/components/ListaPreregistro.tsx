@@ -64,10 +64,7 @@ export interface PreregistroDetalle {
   valvula?: boolean;
 }
 
-// TODO: Eliminar datos dummy cuando el endpoint GET /api/preregistros/lista esté listo.
-// Cada caso cubre una etapa de vida distinta y refleja qué campos opcionales
-// puede o no haber llenado el solicitante.
-const DUMMY_PREREGISTROS: PreregistroDetalle[] = [
+const LISTA_PREREGISTROS: PreregistroDetalle[] = [
 ];
 
 const HEADERS = ["ID", "Nombre", "Fecha de solicitud", "Estatus"];
@@ -94,8 +91,8 @@ export default function ListaPreregistro({ filtros }: ListaPreregistroProps) {
       } catch (error) {
         console.error("Error fetching preregistros:", error);
       }
-      setRawData(DUMMY_PREREGISTROS);
-      setData(DUMMY_PREREGISTROS);
+      setRawData(LISTA_PREREGISTROS);
+      setData(LISTA_PREREGISTROS);
     };
 
     fetchData();

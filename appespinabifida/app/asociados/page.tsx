@@ -10,8 +10,6 @@ import CreateAsociadoModal from "../components/CreateAsociadoModal";
 import ListaPreregistro from "../components/ListaPreregistro";
 import { Button } from "../components/ui/Button";
 
-type Tab = "asociados" | "preregistro";
-
 interface Filters {
   id: number | null,
   nombre: string,
@@ -20,7 +18,7 @@ interface Filters {
 }
 
 export default function Asociados() {
-  const [activeTab, setActiveTab] = useState<Tab>("asociados");
+  const [activeTab, setActiveTab] = useState<"asociados" | "preregistro">("asociados");
   const [filtros, setFiltros] = useState<Filters>({
     id: 0,
     nombre: "",

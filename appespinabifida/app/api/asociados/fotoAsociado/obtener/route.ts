@@ -27,10 +27,8 @@ export async function GET(req: Request) {
     });
   }
 
-  // ✅ FIX: parse JSON instead of arrayBuffer
   const data = await res.json();
 
-  // ✅ extract actual image
   const imageBase64 = data?.items?.[0]?.foto;
 
   if (!imageBase64) {
@@ -42,6 +40,6 @@ export async function GET(req: Request) {
   return Response.json({
     id,
     image: imageBase64,
-    mime: "image/png", // Oracle is returning PNG (iVBOR...)
+    mime: "image/png",
   });
 }

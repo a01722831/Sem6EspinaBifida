@@ -13,9 +13,12 @@ export async function GET(){
             if (text == null) return null;
             return text[0].toUpperCase() + text.slice(1);
         }
+
+
         const [birthDate, timeWithZ] = String(asociado.fecha_nacimiento).split("T");
         const [fechaAlta, _] = String(asociado.fecha_alta).split("T");
         const telephone_list = JSON.parse(asociado.telefonos);
+        
         return {
             id: asociado.id_asociado,
             folio: "ASO-" + asociado.id_asociado,

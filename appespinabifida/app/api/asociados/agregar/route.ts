@@ -66,7 +66,9 @@ type FormState = {
   descripcionToxinas: string;
   foto: any;
 };
+
 export async function POST(request: Request){
+
     const body : FormState = (await request.json());
     const res = await fetch("https://g53bc679c5acb2c-espinabd.adb.mx-queretaro-1.oraclecloudapps.com/ords/admin/asociados/agregarAsociado",{
         method: "POST",
@@ -77,7 +79,6 @@ export async function POST(request: Request){
         body: JSON.stringify(body),
     })
 
-    console.log(body);
     if (res.ok){
         const returnMessage = {
             status: "ok",
