@@ -469,6 +469,15 @@ function resolveEstado(name: string): string {
 
 const GEO_URL = "/geo/mexico-states.json"
 
+const DISPLAY_NAME: Record<string, string> = {
+  "Distrito Federal": "CDMX",
+  "México":           "Estado de México",
+}
+
+function displayName(name: string): string {
+  return DISPLAY_NAME[name] ?? name
+}
+
 interface MapTooltip { name: string; total: number; pct: number; x: number; y: number }
 
 function MapaEstados({ data }: { data: PorEstadoData }) {
@@ -500,7 +509,7 @@ function MapaEstados({ data }: { data: PorEstadoData }) {
     setHoveredKey(resolveEstado(name))
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
-    setTooltip({ name, total: count, pct: getPct(count), x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 12 })
+    setTooltip({ name: displayName(name), total: count, pct: getPct(count), x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 12 })
   }
 
   function handleMove(e: React.MouseEvent<SVGPathElement>, name: string, count: number) {
@@ -543,7 +552,7 @@ function MapaEstados({ data }: { data: PorEstadoData }) {
                     fill={fill}
                     stroke="#ffffff"
                     strokeWidth={0.6}
-                    aria-label={name ? `${name}: ${count} sujetos (${pct}% del total nacional)` : "Estado no identificado"}
+                    aria-label={name ? `${displayName(name)}: ${count} sujetos (${pct}% del total nacional)` : "Estado no identificado"}
                     style={{
                       default: { outline: "none", opacity: isHovered ? 0.8 : 1, cursor: name ? "pointer" : "default" },
                       hover:   { outline: "none" },
@@ -552,7 +561,7 @@ function MapaEstados({ data }: { data: PorEstadoData }) {
                     onMouseEnter={(e) => { if (name) handleEnter(e as unknown as React.MouseEvent<SVGPathElement>, name, count) }}
                     onMouseMove={(e)  => { if (name) handleMove(e as unknown as React.MouseEvent<SVGPathElement>, name, count) }}
                     onMouseLeave={handleLeave}
-                    onFocus={() => { if (name) setFocusedInfo({ name, total: count, pct: getPct(count) }) }}
+                    onFocus={() => { if (name) setFocusedInfo({ name: displayName(name), total: count, pct: getPct(count) }) }}
                     onBlur={() => setFocusedInfo(null)}
                   />
                 )
